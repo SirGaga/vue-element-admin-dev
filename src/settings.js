@@ -1,5 +1,5 @@
 module.exports = {
-  title: '联防联控后台管理',
+  title: '联防联控管理后台',
 
   /**
    * @type {boolean} true | false
