@@ -2,6 +2,8 @@ import { login, logout, getInfo } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
 
+const TokenPrefix = 'Bearer ' // 空格不能去掉，这是Bearer Token的要求
+
 const state = {
   token: getToken(),
   name: '',
@@ -34,9 +36,11 @@ const actions = {
     const { username, password } = userInfo
     return new Promise((resolve, reject) => {
       login({ username: username.trim(), password: password }).then(response => {
+        console.log(response)
         const { data } = response
-        commit('SET_TOKEN', data.token)
-        setToken(data.token)
+        commit('SET_TOKEN', TokenPrefix + data.token)
+        setToken(TokenPrefix + data.token)
+        // 考虑在这里动态修改路由权限，这里有路由有双重验证 一是前端根据路由权限进行判定，二是后台根据token中的权限进行判定
         resolve()
       }).catch(error => {
         reject(error)

@@ -24,7 +24,7 @@ router.beforeEach(async(to, from, next) => {
     if (to.path === '/login') {
       // 如果已经登录还去login的话直接跳转到 / 路径下
       next({ path: '/' })
-      NProgress.done() // hack: https://github.com/PanJiaChen/vue-element-admin/pull/2939
+      NProgress.done()
     } else {
       // 判断该用户是否已经获取其权限（该权限需要提前和path提前进行匹配）
       const hasRoles = store.getters.roles && store.getters.roles.length > 0
@@ -32,21 +32,21 @@ router.beforeEach(async(to, from, next) => {
         next()
       } else {
         try {
-          // get user info
+          // 获得用户和权限信息
           // note: roles must be a object array! such as: ['admin'] or ,['developer','editor']
           const { roles } = await store.dispatch('user/getInfo')
 
-          // generate accessible routes map based on roles
+          // 通过角色获取可进入的路由
           const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
 
-          // dynamically add accessible routes
+          // 动态添加可进入的路由
           router.addRoutes(accessRoutes)
 
-          // hack method to ensure that addRoutes is complete
+          //  hack方法 确保addRoutes已完成
           // set the replace: true, so the navigation will not leave a history record
           next({ ...to, replace: true })
         } catch (error) {
-          // remove token and go to login page to re-login
+          // 删除token，进入登录页面重新登录
           await store.dispatch('user/resetToken')
           Message.error(error || 'Has Error')
           next(`/login?redirect=${to.path}`)
@@ -55,13 +55,13 @@ router.beforeEach(async(to, from, next) => {
       }
     }
   } else {
-    /* has no token*/
+    /* 没有获取到token*/
 
     if (whiteList.indexOf(to.path) !== -1) {
-      // in the free login whitelist, go directly
+      // 在免费登录白名单，直接跳转
       next()
     } else {
-      // other pages that do not have permission to access are redirected to the login page.
+      // 没有访问权限的其他页面被重定向到登录页面。
       next(`/login?redirect=${to.path}`)
       NProgress.done()
     }

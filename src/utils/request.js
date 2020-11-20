@@ -16,15 +16,16 @@ service.interceptors.request.use(
     // do something before request is sent
 
     if (store.getters.token) {
-      // let each request carry token
-      // ['X-Token'] is a custom headers key
-      // please modify it according to the actual situation
-      config.headers['X-Token'] = getToken()
+      // 让每一个请求都携带一个token
+      // ['X-Token'] || ['Authorization'] 是一个请求的自定义header key
+      // 根据实际情况修改
+      // config.headers['X-Token'] = getToken()
+      config.headers['Authorization'] = getToken()
     }
     return config
   },
   error => {
-    // do something with request error
+    // 如果请求出错的时候，一般情况下很少发生，除非服务宕机
     console.log(error) // for debug
     return Promise.reject(error)
   }
@@ -44,9 +45,11 @@ service.interceptors.response.use(
    */
   response => {
     const res = response.data
+    console.log(response)
 
     // if the custom code is not 20000, it is judged as an error.
-    if (res.code !== 20000) {
+    // 20000
+    if (res.code !== 200) {
       Message({
         message: res.message || 'Error',
         type: 'error',
