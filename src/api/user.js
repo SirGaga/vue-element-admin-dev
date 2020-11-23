@@ -14,8 +14,14 @@ export function getInfo(token) {
 }
 
 export function logout() {
-  return request({
-    url: '/logout',
-    method: 'post'
-  })
+  return request.post('/logout')
+}
+
+/**
+ * 获取查询列表
+ * @param userVo 用户实体
+ * @returns {AxiosPromise<any>}
+ */
+export const findUserList = (userVo) => {
+  return request.post('/system/user/', userVo)
 }

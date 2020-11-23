@@ -28,16 +28,16 @@ router.beforeEach(async(to, from, next) => {
     } else {
       // 判断该用户是否已经获取其权限（该权限需要提前和path提前进行匹配）
       const hasRoles = store.getters.roles && store.getters.roles.length > 0
+      console.log(hasRoles)
       if (hasRoles) {
         next()
       } else {
         try {
           // 获得用户和权限信息
           // note: roles must be a object array! such as: ['admin'] or ,['developer','editor']
-          const { roles } = await store.dispatch('user/getInfo')
-
+          const { data } = await store.dispatch('user/getInfo')
           // 通过角色获取可进入的路由
-          const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
+          const accessRoutes = await store.dispatch('permission/generateRoutes', data.authorities.map(e => e.authority))
 
           // 动态添加可进入的路由
           router.addRoutes(accessRoutes)

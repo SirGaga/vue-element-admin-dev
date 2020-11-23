@@ -8,7 +8,7 @@ const state = {
   token: getToken(),
   name: '',
   avatar: '',
-  introduction: '',
+  // introduction: '',
   roles: []
 }
 
@@ -16,9 +16,9 @@ const mutations = {
   SET_TOKEN: (state, token) => {
     state.token = token
   },
-  SET_INTRODUCTION: (state, introduction) => {
-    state.introduction = introduction
-  },
+  // SET_INTRODUCTION: (state, introduction) => {
+  //    state.introduction = introduction
+  // },
   SET_NAME: (state, name) => {
     state.name = name
   },
@@ -36,7 +36,6 @@ const actions = {
     const { username, password } = userInfo
     return new Promise((resolve, reject) => {
       login({ username: username.trim(), password: password }).then(response => {
-        console.log(response)
         const { data } = response
         commit('SET_TOKEN', TokenPrefix + data.token)
         setToken(TokenPrefix + data.token)
@@ -58,17 +57,16 @@ const actions = {
           reject('Verification failed, please Login again.')
         }
 
-        const { roles, name, avatar, introduction } = data
+        const { authorities, avatar, username } = data.data
 
         // roles must be a non-empty array
-        if (!roles || roles.length <= 0) {
+        if (!authorities || authorities.length <= 0) {
           reject('getInfo: roles must be a non-null array!')
         }
-
-        commit('SET_ROLES', roles)
-        commit('SET_NAME', name)
-        commit('SET_AVATAR', avatar)
-        commit('SET_INTRODUCTION', introduction)
+        commit('SET_ROLES', authorities.map(e => e.authority))
+        commit('SET_NAME', username)
+        commit('SET_AVATAR', avatar || 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif')
+        // commit('SET_INTRODUCTION', introduction)
         resolve(data)
       }).catch(error => {
         reject(error)
