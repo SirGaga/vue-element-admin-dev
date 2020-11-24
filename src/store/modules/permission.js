@@ -1,4 +1,5 @@
 import { asyncRoutes, constantRoutes } from '@/router'
+import { getComponents } from '@/api/role'
 
 /**
  * Use meta.role to determine if the current user has permission
@@ -60,6 +61,10 @@ const actions = {
       commit('SET_ROUTES', accessedRoutes)
       resolve(accessedRoutes)
     })
+  },
+  async getComponents({ commit }, roleNames) {
+    const components = await getComponents(roleNames)
+    return components
   }
 }
 

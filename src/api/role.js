@@ -1,5 +1,14 @@
 import request from '@/utils/request'
 
+/**
+ * 获取该角色下可以使用的组件信息
+ * @param roleNames
+ * @returns {AxiosPromise<any>}
+ */
+export function getComponents(roleNames) {
+  return request.post('/system/menu/components', roleNames)
+}
+
 export function getRoutes() {
   return request({
     url: '/vue-element-admin/routes',

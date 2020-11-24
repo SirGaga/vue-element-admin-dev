@@ -5,6 +5,7 @@ import NProgress from 'nprogress' // 进度条
 import 'nprogress/nprogress.css' // 进度条央视
 import { getToken } from '@/utils/auth' // 从cookie中获取token，以后要使用后台传送过来的jwt
 import getPageTitle from '@/utils/get-page-title'// 获取页面title
+import { listConvertTree } from '@/utils/array-list'
 
 NProgress.configure({ showSpinner: false }) // 进度条基本配置
 
@@ -37,8 +38,12 @@ router.beforeEach(async(to, from, next) => {
           // note: roles must be a object array! such as: ['admin'] or ,['developer','editor']
           const { data } = await store.dispatch('user/getInfo')
           // 通过角色获取可进入的路由
+          const components = await store.dispatch('permission/getComponents', data.authorities.map(e => e.authority))
+          console.log(listConvertTree(components.data.records).children)
+          // 组装路由
           const accessRoutes = await store.dispatch('permission/generateRoutes', data.authorities.map(e => e.authority))
-
+          // 这里通过获取到的用户信息可以获取到用户可以访问的组件
+          // 将获取到的json转换成组件构成的路由，然后添加到routes中，保存到window.localStorage中
           // 动态添加可进入的路由
           router.addRoutes(accessRoutes)
 

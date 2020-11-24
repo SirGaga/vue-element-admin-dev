@@ -128,6 +128,7 @@ import { findUserList } from '@/api/user'
 import DeptCascader from '../../components/Cascader/DeptCascader'
 import { findDeptTree } from '@/api/dept'
 import UserAdd from './component/UserAdd'
+import { listConvertTree } from '@/utils/array-list'
 
 export default {
   name: 'User',
@@ -190,29 +191,7 @@ export default {
     async getDeptList() {
       const { data } = await findDeptTree()
       this.formInline.deptMap = data.records
-      let root = null
-      if (this.formInline.deptMap && this.formInline.deptMap.length) {
-        root = { id: 0, parentId: null, children: [] }
-        const group = {}
-        for (const deptMapElement of this.formInline.deptMap) {
-          if (deptMapElement.deptParentId !== null && deptMapElement.deptParentId !== undefined) {
-            if (!group[deptMapElement.deptParentId]) {
-              group[deptMapElement.deptParentId] = []
-            }
-            group[deptMapElement.deptParentId].push(deptMapElement)
-          }
-        }
-
-        const queue = []
-        queue.push(root)
-        while (queue.length) {
-          const node = queue.shift()
-          node.children = group[node.id] && group[node.id].length ? group[node.id] : null
-          if (node.children) {
-            queue.push(...node.children)
-          }
-        }
-      }
+      const root = listConvertTree(this.formInline.deptMap)
       this.formInline.dept = root.children
     },
     onSubmit() {
