@@ -3,11 +3,8 @@
     <el-card class="box-card">
       <el-form :inline="true" :model="formInline" class="demo-form-inline">
         <dept-cascader :dept-code="userVo.deptCode" :dept="formInline.dept" :dept-map="formInline.deptMap" @handleChange="handleChange" />
-        <el-form-item label="用户名">
-          <el-input v-model="userVo.userName" clearable placeholder="请输入用户名" />
-        </el-form-item>
-        <el-form-item label="姓名">
-          <el-input v-model="userVo.realName" clearable placeholder="请输入姓名" />
+        <el-form-item label="用户标识">
+          <el-input v-model="userVo.userOrRealName" clearable placeholder="请输入姓名/用户名" />
         </el-form-item>
         <el-form-item label="公民身份号码">
           <el-input v-model="userVo.gmsfhm" clearable placeholder="请输入公民身份号码" />
@@ -140,9 +137,8 @@ export default {
     return {
       dialogVisible: false,
       userVo: {
-        userName: '',
         deptName: '',
-        realName: '',
+        userOrRealName: '',
         deptCode: '',
         status: '',
         jh: '',
@@ -221,11 +217,10 @@ export default {
     // 这里获取到的value是最终选中的节点按照层级组成的数组
     resetUserVo() {
       this.userVo.deptCode = ''
-      this.userVo.userName = ''
       this.userVo.deptName = ''
       this.userVo.gmsfhm = ''
       this.userVo.jh = ''
-      this.userVo.realName = ''
+      this.userVo.userOrRealName = ''
       this.userVo.status = ''
     },
     showDialog() {

@@ -6,6 +6,12 @@
           <el-col :span="24">
             <el-row>
               <el-col :span="12">
+                <el-form-item label="用户名" prop="userName">
+                  <!-- :maxlength="11" show-word-limit -->
+                  <el-input v-model="formData.userName" placeholder="请输入姓名" clearable prefix-icon="el-icon-user" :style="{width: '100%'}" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
                 <el-form-item label="姓名" prop="realName">
                   <!-- :maxlength="11" show-word-limit -->
                   <el-input v-model="formData.realName" placeholder="请输入姓名" clearable prefix-icon="el-icon-user" :style="{width: '100%'}" />
@@ -42,6 +48,8 @@
 </template>
 <script>
 import DeptCascader from '../../../components/Cascader/DeptCascader'
+import { checkUserNameDuplicate } from '@/utils/validate'
+
 export default {
   name: 'UserAdd',
   components: {
@@ -75,6 +83,7 @@ export default {
     return {
       dialogVisibleChild: this.dialogVisible,
       formData: {
+        userName: '',
         realName: '',
         gmsfhm: '',
         jh: '',
@@ -83,6 +92,14 @@ export default {
         deptName: ''
       },
       rules: {
+        userName: [{
+          required: true,
+          message: '请输入姓名',
+          trigger: 'blur'
+        }, {
+          validator: checkUserNameDuplicate,
+          trigger: 'blur'
+        }],
         realName: [{
           required: true,
           message: '请输入姓名',

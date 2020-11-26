@@ -6,7 +6,7 @@ import request from '@/utils/request'
  * @returns {AxiosPromise<any>}
  */
 export function getComponents(roleNames) {
-  return request.post('/system/menu/components', roleNames)
+  return request.post('/components', roleNames)
 }
 
 export function getRoutes() {

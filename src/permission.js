@@ -5,8 +5,6 @@ import NProgress from 'nprogress' // 进度条
 import 'nprogress/nprogress.css' // 进度条央视
 import { getToken } from '@/utils/auth' // 从cookie中获取token，以后要使用后台传送过来的jwt
 import getPageTitle from '@/utils/get-page-title'// 获取页面title
-// const _import = require('./utils/trans-str-to-component') // 获取组件的方法
-// import Layout from '@/layout'
 
 NProgress.configure({ showSpinner: false }) // 进度条基本配置
 
@@ -32,7 +30,6 @@ router.beforeEach(async(to, from, next) => {
     } else {
       // 判断该用户是否已经获取其权限（该权限需要提前和path提前进行匹配）
       const hasRoles = store.getters.roles && store.getters.roles.length > 0
-      console.log(hasRoles)
       if (hasRoles) {
         next()
       } else {

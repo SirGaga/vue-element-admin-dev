@@ -1,6 +1,4 @@
-/**
- * Created by PanJiaChen on 16/11/18.
- */
+import { checkUserName } from '@/api/user'
 
 /**
  * @param {string} path
@@ -84,4 +82,14 @@ export function isArray(arg) {
     return Object.prototype.toString.call(arg) === '[object Array]'
   }
   return Array.isArray(arg)
+}
+
+export async function checkUserNameDuplicate(rule, userName, callback) {
+  const result = await checkUserName(userName)
+  console.log(result)
+  if (result.success === false) {
+    callback(new Error(result.message))
+  } else {
+    callback()
+  }
 }
