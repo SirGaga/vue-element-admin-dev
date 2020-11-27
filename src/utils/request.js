@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { MessageBox, Message,Loading } from 'element-ui'
+import { MessageBox, Message, Loading } from 'element-ui'
 import store from '@/store'
 import { getToken } from '@/utils/auth'
 
@@ -63,17 +63,14 @@ service.interceptors.request.use(
 )
 
 // response interceptor
+/**
+ * If you want to get http information such as headers or status
+ * Please return  response => response
+ * Determine the request status by custom code
+ * Here is just an example
+ * You can also judge the status by HTTP Status Code
+ */
 service.interceptors.response.use(
-  /**
-   * If you want to get http information such as headers or status
-   * Please return  response => response
-  */
-
-  /**
-   * Determine the request status by custom code
-   * Here is just an example
-   * You can also judge the status by HTTP Status Code
-   */
   response => {
     const res = response.data
 
