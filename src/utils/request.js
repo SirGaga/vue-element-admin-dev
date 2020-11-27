@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { MessageBox, Message } from 'element-ui'
+import { MessageBox, Message,Loading } from 'element-ui'
 import store from '@/store'
 import { getToken } from '@/utils/auth'
 
@@ -10,6 +10,36 @@ const service = axios.create({
   timeout: 5000 // request timeout
 })
 
+let loading // 定义loading变量
+
+function startLoading() { // 使用Element loading-start 方法
+  loading = Loading.service({
+    lock: true,
+    spinner: 'el-icon-loading',
+    background: 'rgba(0, 0, 0, 0.7)'
+  })
+}
+function endLoading() { // 使用Element loading-close 方法
+  loading.close()
+}
+// showFullScreenLoading() tryHideFullScreenLoading() 将同一时刻的请求合并。
+// 每次调用showFullScreenLoading方法 needLoadingRequestCount + 1。
+// 调用tryHideFullScreenLoading()方法，needLoadingRequestCount - 1。needLoadingRequestCount为 0 时，结束 loading。
+let needLoadingRequestCount = 0
+export function showFullScreenLoading() {
+  if (needLoadingRequestCount === 0) {
+    startLoading()
+  }
+  needLoadingRequestCount++
+}
+
+export function tryHideFullScreenLoading() {
+  if (needLoadingRequestCount <= 0) return
+  needLoadingRequestCount--
+  if (needLoadingRequestCount === 0) {
+    endLoading()
+  }
+}
 // request interceptor
 service.interceptors.request.use(
   config => {
@@ -22,6 +52,7 @@ service.interceptors.request.use(
       // config.headers['X-Token'] = getToken()
       config.headers['Authorization'] = getToken()
     }
+    showFullScreenLoading()
     return config
   },
   error => {
@@ -68,8 +99,10 @@ service.interceptors.response.use(
           })
         })
       }
+      tryHideFullScreenLoading()
       return Promise.reject(new Error(res.message || 'Error'))
     } else {
+      tryHideFullScreenLoading()
       return res
     }
   },

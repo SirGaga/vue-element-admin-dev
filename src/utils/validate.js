@@ -1,4 +1,4 @@
-import { checkUserName } from '@/api/user'
+import { checkUserName, checkGmsfhm } from '@/api/validate'
 
 /**
  * @param {string} path
@@ -86,10 +86,64 @@ export function isArray(arg) {
 
 export async function checkUserNameDuplicate(rule, userName, callback) {
   const result = await checkUserName(userName)
-  console.log(result)
   if (result.success === false) {
     callback(new Error(result.message))
   } else {
     callback()
+  }
+}
+
+function checkDate(val) {
+  const pattern = /^(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)$/
+  if (pattern.test(val)) {
+    const year = val.substring(0, 4)
+    const month = val.substring(4, 6)
+    const date = val.substring(6, 8)
+    const date2 = new Date(year + '-' + month + '-' + date)
+    if (date2 && date2.getMonth() === (parseInt(month) - 1)) {
+      return true
+    }
+  }
+  return false
+}
+
+function checkCode(val) {
+  const p = /^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/
+  const factor = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
+  const parity = [1, 0, 'X', 9, 8, 7, 6, 5, 4, 3, 2]
+  const code = val.substring(17)
+  if (p.test(val)) {
+    let sum = 0
+    for (var i = 0; i < 17; i++) {
+      sum += val[i] * factor[i]
+    }
+    if (parity[sum % 11].toString() === code.toUpperCase()) {
+      return true
+    }
+  }
+  return false
+}
+
+export async function checkGmsfhmDuplicate(rule, gmsfhm, callback) {
+  const gmsfhm15 = /^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$/
+  let regResult = false
+  console.log(gmsfhm)
+  if (gmsfhm.length !== 15 && gmsfhm.length !== 18) {
+    callback(new Error('请输入正确的公民身份号码'))
+  }
+  if (gmsfhm.length === 15) {
+    regResult = gmsfhm15.test(gmsfhm)
+  } else if (gmsfhm.length === 18) {
+    regResult = checkCode(gmsfhm) ? checkDate(gmsfhm.substring(6, 14)) : false
+  }
+  if (regResult) {
+    const result = await checkGmsfhm(gmsfhm)
+    if (result.success === false) {
+      callback(new Error(result.message))
+    } else {
+      callback()
+    }
+  } else {
+    callback(new Error('请输入正确的公民身份号码'))
   }
 }

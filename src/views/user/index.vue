@@ -177,7 +177,6 @@ export default {
       this.userVo.size = this.pageSize
       this.userVo.current = this.currentPage
       const { data } = await findUserList(this.userVo)
-      console.log(data)
       // 使用es6的数据解构语法是这样写，
       // 代表的是定义一个常量，这个常量自动接收返回数据中的data属性的值
       // const {data} = await findUserList();

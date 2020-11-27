@@ -41,14 +41,11 @@ export const findUserList = (userVo) => {
 }
 
 /**
- * 获取查询列表
- * @param userVo 用户实体
+ * 创建用户
+ * @param tbSysUser 用户实体
  * @returns {AxiosPromise<any>}
  */
-export const checkUserName = (userName) => {
-  return request.get('/system/user/checkUserName', {
-    params: {
-      userName
-    }
-  })
+export const saveUser = (tbSysUser) => {
+  return request.post('/system/user/save', tbSysUser)
 }
+
