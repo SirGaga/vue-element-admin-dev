@@ -25,7 +25,7 @@
         <el-form-item>
           <el-button icon="el-icon-refresh" @click="resetUserVo">重置</el-button>
           <el-button type="primary" icon="el-icon-search" @click="getUserList">查询</el-button>
-          <el-button type="success" icon="el-icon-plus" @click="showDialog">添加</el-button>
+          <el-button type="success" icon="el-icon-plus" @click="showAddDialog">添加</el-button>
           <el-button icon="el-icon-download" @click="onSubmit">导出</el-button>
         </el-form-item>
       </el-form>
@@ -44,22 +44,22 @@
         <el-table-column
           prop="userName"
           label="用户名"
-          width="180"
+          width="120"
         />
         <el-table-column
           prop="realName"
           label="姓名"
-          width="180"
+          width="120"
         />
         <el-table-column
           prop="jh"
           label="警号"
-          width="180"
+          width="120"
         />
         <el-table-column
           prop="gmsfhm"
           label="公民身份号码"
-          width="200"
+          width="180"
         />
 
         <el-table-column
@@ -115,7 +115,8 @@
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />
-      <user-add :dialog-visible="dialogVisible" :dept-code="userVo.deptCode" :dept="formInline.dept" :dept-map="formInline.deptMap" @hideDialog="hideDialog" />
+      <user-add :dialog-visible="dialogAddVisible" :dept="formInline.dept" :dept-map="formInline.deptMap" dept-code="" @hideAddDialog="hideAddDialog" @getUserList="getUserList" />
+      <user-update :dialog-visible="dialogUpdateVisible" :dept="formInline.dept" :dept-map="formInline.deptMap" :dept-code="deptCodeCascader" :tb-sys-user-row="tbSysUserRow" @hideUpdateDialog="hideUpdateDialog" @getUserList="getUserList" />
     </el-card>
   </div>
 </template>
@@ -126,16 +127,20 @@ import DeptCascader from '../../components/Cascader/DeptCascader'
 import { findDeptTree } from '@/api/dept'
 import UserAdd from './component/UserAdd'
 import { listConvertTree } from '@/utils/array-list'
+import UserUpdate from '@/views/user/component/UserUpdate'
 
 export default {
   name: 'User',
   components: {
     DeptCascader,
-    UserAdd
+    UserAdd,
+    UserUpdate
   },
   data() {
     return {
-      dialogVisible: false,
+      dialogAddVisible: false,
+      dialogUpdateVisible: false,
+      deptCodeCascader: '',
       userVo: {
         deptName: '',
         userOrRealName: '',
@@ -160,6 +165,7 @@ export default {
         }],
         dept: []
       },
+      tbSysUserRow: {},
       tableData: [],
       currentPage: 1,
       total: 1,
@@ -222,15 +228,22 @@ export default {
       this.userVo.userOrRealName = ''
       this.userVo.status = ''
     },
-    showDialog() {
-      this.dialogVisible = true
+    showAddDialog() {
+      this.dialogAddVisible = true
     },
-    hideDialog() {
-      this.dialogVisible = false
+    hideAddDialog() {
+      this.dialogAddVisible = false
+    },
+    hideUpdateDialog() {
+      this.dialogUpdateVisible = false
+      this.tbSysUserRow = {}
+      this.deptCodeCascader = ''
     },
     // 处理编辑 后台传入id，然后查询出来信息后返回弹框中
     handleEdit(index, row) {
-      console.log(index, row)
+      this.dialogUpdateVisible = true
+      this.tbSysUserRow = row
+      this.deptCodeCascader = row.deptCode
     },
     // 处理删除，后台传入id，然后重新按照初始化的分页进行查询
     handleDelete(index, row) {

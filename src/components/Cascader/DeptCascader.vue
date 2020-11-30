@@ -12,7 +12,7 @@
     >
       <template slot-scope="{ node, data }">
         <span>{{ data.deptName }}</span>
-        <span v-if="!node.isLeaf"> ({{ data.children.length }}) </span>
+        <span> ({{ data.children !==null?data.children.length : 0 }}) </span>
       </template>
     </el-cascader>
   </el-form-item>
@@ -47,6 +47,13 @@ export default {
       deptCodeChild: this.deptCode
     }
   },
+  watch: {
+    deptCode(val) {
+      if (val !== null) {
+        this.deptCodeChild = val
+      }
+    }
+  },
   methods: {
     handleChange(value) {
       this.$emit('handleChange', value === null ? '' : value)
@@ -62,5 +69,7 @@ export default {
 </script>
 
 <style scoped>
-
+  .el-cascader {
+    width: 100%;
+  }
 </style>

@@ -49,3 +49,20 @@ export const saveUser = (tbSysUser) => {
   return request.post('/system/user/save', tbSysUser)
 }
 
+/**
+ * 根据用户id获取用户全部信息
+ * @param id 用户实体
+ * @returns {AxiosPromise<any>}
+ */
+export const getUserById = (id) => {
+  return request.get('/system/user/' + id)
+}
+
+/**
+ * 根据id更新用户信息
+ * @param id 用户实体
+ * @returns {AxiosPromise<any>}
+ */
+export const updateUserById = (id, tbSysUser) => {
+  return request.put('/system/user/' + id, tbSysUser)
+}

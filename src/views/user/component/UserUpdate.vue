@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-dialog :visible.sync="dialogVisibleChild" title="新增用户" @close="close">
+    <el-dialog :visible.sync="dialogVisibleChild" title="修改用户" @close="close">
       <el-row :gutter="15">
         <el-form ref="elForm" :model="tbSysUser" :rules="rules" size="medium" label-width="100px">
           <el-col :span="24">
@@ -48,8 +48,9 @@
 </template>
 <script>
 import DeptCascader from '../../../components/Cascader/DeptCascader'
-import { checkUserNameDuplicate, checkGmsfhmDuplicate } from '@/utils/validate'
-import { saveUser } from '@/api/user'
+import { updateUserById } from '@/api/user'
+import { checkGmsfhm, checkUserName } from '@/api/validate'
+import { checkCode, checkDate } from '@/utils/validate'
 
 export default {
   name: 'UserAdd',
@@ -80,28 +81,26 @@ export default {
       default() {
         return []
       }
+    },
+    tbSysUserRow: {
+      type: Object,
+      required: true,
+      default() {
+        return {}
+      }
     }
   },
   data() {
     return {
       dialogVisibleChild: this.dialogVisible,
-      tbSysUser: {
-        userName: '',
-        realName: '',
-        gmsfhm: '',
-        jh: '',
-        pwd: '',
-        deptCode: '',
-        deptName: '',
-        deptId: 0
-      },
+      tbSysUser: this.tbSysUserRow,
       rules: {
         userName: [{
           required: true,
           message: '请输入姓名',
           trigger: 'blur'
         }, {
-          validator: checkUserNameDuplicate,
+          validator: this.checkUserNameDuplicate,
           trigger: 'blur'
         }],
         realName: [{
@@ -120,7 +119,7 @@ export default {
           message: '请输入身份证号码',
           trigger: 'blur'
         }, {
-          validator: checkGmsfhmDuplicate,
+          validator: this.checkGmsfhmDuplicate,
           trigger: 'blur'
         }],
         jh: [{
@@ -145,9 +144,45 @@ export default {
     // 监听父组件中是否显示窗口的值的变化
     dialogVisible(val) {
       this.dialogVisibleChild = val
+    },
+    tbSysUserRow(val) {
+      this.tbSysUser = val
     }
   },
   methods: {
+    async checkUserNameDuplicate(rule, userName, callback) {
+      const result = await checkUserName(userName)
+      if (result.success === false) {
+        callback(new Error(result.message))
+      } else {
+        callback()
+      }
+    },
+    async checkGmsfhmDuplicate(rule, gmsfhm, callback) {
+      const gmsfhm15 = /^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$/
+      let regResult = false
+      if (gmsfhm.trim().length === 0) {
+        callback(new Error('请输入身份证号码'))
+      }
+      if (gmsfhm.length !== 15 && gmsfhm.length !== 18) {
+        callback(new Error('请输入正确的公民身份号码'))
+      }
+      if (gmsfhm.length === 15) {
+        regResult = gmsfhm15.test(gmsfhm)
+      } else if (gmsfhm.length === 18) {
+        regResult = checkCode(gmsfhm) ? checkDate(gmsfhm.substring(6, 14)) : false
+      }
+      if (regResult) {
+        const result = await checkGmsfhm(gmsfhm)
+        if (result.success === false) {
+          callback(new Error(result.message))
+        } else {
+          callback()
+        }
+      } else {
+        callback(new Error('请输入正确的公民身份号码'))
+      }
+    },
     handleChange(value) {
       this.tbSysUser.deptCode = value
       if (value !== '') {
@@ -158,33 +193,32 @@ export default {
     },
     close() {
       this.$refs['elForm'].resetFields()
-      this.$emit('hideAddDialog')
+      this.$emit('hideUpdateDialog')
     },
     async handleConfirm() {
-      let valid = true
       await this.$refs['elForm'].validate(validate => {
         if (!validate) {
-          valid = false
           return false
         } else {
+          let valid = true
           for (const tbSysUserKey in this.tbSysUser) {
-            if (!this.tbSysUser[tbSysUserKey] || !(this.tbSysUser[tbSysUserKey]).toString().length) {
+            if (!this.tbSysUser[tbSysUserKey] || !this.tbSysUser[tbSysUserKey].length) {
               valid = false
               break
             }
           }
+          if (valid) {
+            const result = updateUserById(this.tbSysUserRow.id, this.tbSysUser)
+            this.$alert(result.success === true ? '用户更新成功' : '用户更新失败,请联系管理员排除问题', '操作结果', {
+              confirmButtonText: '确定',
+              callback: action => {
+                this.$emit('getUserList')
+                this.close()
+              }
+            })
+          }
         }
       })
-      if (valid) {
-        const result = await saveUser(this.tbSysUser)
-        await this.$alert(result.success === true ? '用户新增成功' : '用户新增失败,请联系管理员排除问题', '操作结果', {
-          confirmButtonText: '确定',
-          callback: action => {
-            this.$emit('getUserList')
-            this.close()
-          }
-        })
-      }
     }
   }
 }

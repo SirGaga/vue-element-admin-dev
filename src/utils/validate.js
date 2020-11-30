@@ -93,7 +93,7 @@ export async function checkUserNameDuplicate(rule, userName, callback) {
   }
 }
 
-function checkDate(val) {
+export function checkDate(val) {
   const pattern = /^(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)$/
   if (pattern.test(val)) {
     const year = val.substring(0, 4)
@@ -107,7 +107,7 @@ function checkDate(val) {
   return false
 }
 
-function checkCode(val) {
+export function checkCode(val) {
   const p = /^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/
   const factor = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
   const parity = [1, 0, 'X', 9, 8, 7, 6, 5, 4, 3, 2]
@@ -127,7 +127,9 @@ function checkCode(val) {
 export async function checkGmsfhmDuplicate(rule, gmsfhm, callback) {
   const gmsfhm15 = /^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$/
   let regResult = false
-  console.log(gmsfhm)
+  if (gmsfhm.trim().length === 0) {
+    callback(new Error('请输入身份证号码'))
+  }
   if (gmsfhm.length !== 15 && gmsfhm.length !== 18) {
     callback(new Error('请输入正确的公民身份号码'))
   }
