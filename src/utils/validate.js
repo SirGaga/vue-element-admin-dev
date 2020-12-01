@@ -67,10 +67,7 @@ export function validEmail(email) {
  * @returns {Boolean}
  */
 export function isString(str) {
-  if (typeof str === 'string' || str instanceof String) {
-    return true
-  }
-  return false
+  return typeof str === 'string' || str instanceof String
 }
 
 /**
@@ -83,6 +80,25 @@ export function isArray(arg) {
   }
   return Array.isArray(arg)
 }
+
+/**
+ * 判断是否为空
+ * @param arg
+ */
+export function isEmpty(rule, arg, callback) {
+  if (isString(arg)) {
+    arg.trim().length > 0 ? callback() : callback(new Error('该字段不可为空，不能包含空格'))
+  } else {
+    arg.toString().trim().length > 0 ? callback() : callback(new Error('该字段不可为空，不能包含空格'))
+  }
+}
+/**
+ * 检查用户名是否重复
+ * @param rule
+ * @param userName
+ * @param callback
+ * @returns {Promise<void>}
+ */
 
 export async function checkUserNameDuplicate(rule, userName, callback) {
   const result = await checkUserName(userName)
@@ -124,6 +140,13 @@ export function checkCode(val) {
   return false
 }
 
+/**
+ * 检查gmsfhm是否重复
+ * @param rule
+ * @param gmsfhm
+ * @param callback
+ * @returns {Promise<void>}
+ */
 export async function checkGmsfhmDuplicate(rule, gmsfhm, callback) {
   const gmsfhm15 = /^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$/
   let regResult = false

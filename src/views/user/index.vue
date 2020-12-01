@@ -122,7 +122,7 @@
 </template>
 
 <script>
-import { findUserList } from '@/api/user'
+import { deleteUserById, findUserList } from '@/api/user'
 import DeptCascader from '../../components/Cascader/DeptCascader'
 import { findDeptTree } from '@/api/dept'
 import UserAdd from './component/UserAdd'
@@ -246,8 +246,31 @@ export default {
       this.deptCodeCascader = row.deptCode
     },
     // 处理删除，后台传入id，然后重新按照初始化的分页进行查询
-    handleDelete(index, row) {
-      console.log(index, row)
+    async handleDelete(index, row) {
+      const confirmResult = await this.$confirm('此操作将删除该用户, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'error'
+      }).then(t => {
+        return t
+      }).catch(e => {
+        return e
+      })
+      if (confirmResult === 'confirm') {
+        await deleteUserById(row.id).then(() => {
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          })
+          this.getUserList()
+        }).catch(_ => {
+        })
+      } else {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      }
     },
     // 处理权限配置，后台传入id，然后级联获取权限信息，返回弹窗
     handlePermission(index, row) {

@@ -33,7 +33,7 @@
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <dept-cascader prop="deptCode" :dept-code="deptCode" :dept="dept" :dept-map="deptMap" @handleChange="handleChange" />
+                <dept-cascader prop="deptCode" :dept-code="tbSysUser.deptCode" :dept="dept" :dept-map="deptMap" @handleChange="handleChange" />
               </el-col>
             </el-row>
           </el-col>
@@ -48,7 +48,7 @@
 </template>
 <script>
 import DeptCascader from '../../../components/Cascader/DeptCascader'
-import { checkUserNameDuplicate, checkGmsfhmDuplicate } from '@/utils/validate'
+import { checkUserNameDuplicate, checkGmsfhmDuplicate, isEmpty } from '@/utils/validate'
 import { saveUser } from '@/api/user'
 
 export default {
@@ -101,12 +101,18 @@ export default {
           message: '请输入姓名',
           trigger: 'blur'
         }, {
+          validator: isEmpty,
+          trigger: 'blur'
+        }, {
           validator: checkUserNameDuplicate,
           trigger: 'blur'
         }],
         realName: [{
           required: true,
           message: '请输入姓名',
+          trigger: 'blur'
+        }, {
+          validator: isEmpty,
           trigger: 'blur'
         }
           // ,{
@@ -120,6 +126,9 @@ export default {
           message: '请输入身份证号码',
           trigger: 'blur'
         }, {
+          validator: isEmpty,
+          trigger: 'blur'
+        }, {
           validator: checkGmsfhmDuplicate,
           trigger: 'blur'
         }],
@@ -127,15 +136,24 @@ export default {
           required: true,
           message: '请输入警号',
           trigger: 'blur'
+        }, {
+          validator: isEmpty,
+          trigger: 'blur'
         }],
         pwd: [{
           required: true,
           message: '请输入登录密码',
           trigger: 'blur'
+        }, {
+          validator: isEmpty,
+          trigger: 'blur'
         }],
         deptCode: [{
           required: true,
           message: '请选择部门',
+          trigger: 'blur'
+        }, {
+          validator: isEmpty,
           trigger: 'blur'
         }]
       }
@@ -158,31 +176,31 @@ export default {
     },
     close() {
       this.$refs['elForm'].resetFields()
+      this.tbSysUser.deptName = ''
+      this.tbSysUser.deptId = 0
+      console.log(this.tbSysUser)
       this.$emit('hideAddDialog')
     },
     async handleConfirm() {
-      let valid = true
-      await this.$refs['elForm'].validate(validate => {
-        if (!validate) {
-          valid = false
-          return false
-        } else {
-          for (const tbSysUserKey in this.tbSysUser) {
-            if (!this.tbSysUser[tbSysUserKey] || !(this.tbSysUser[tbSysUserKey]).toString().length) {
-              valid = false
-              break
-            }
-          }
-        }
+      const valid = await this.$refs['elForm'].validate().then(t => {
+        return t
+      }).catch(e => {
+        return e
       })
       if (valid) {
-        const result = await saveUser(this.tbSysUser)
-        await this.$alert(result.success === true ? '用户新增成功' : '用户新增失败,请联系管理员排除问题', '操作结果', {
-          confirmButtonText: '确定',
-          callback: action => {
-            this.$emit('getUserList')
-            this.close()
-          }
+        await saveUser(this.tbSysUser).then(() => {
+          this.$message({
+            type: 'success',
+            message: '用户添加成功!',
+            duration: 5 * 1000
+          })
+          this.$emit('getUserList')
+          this.close()
+        }).catch(e => {
+          this.$alert(e.message + '，请联系管理员!!', '提示', {
+            confirmButtonText: '确定',
+            type: 'error'
+          })
         })
       }
     }

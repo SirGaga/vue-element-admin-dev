@@ -50,7 +50,7 @@
 import DeptCascader from '../../../components/Cascader/DeptCascader'
 import { updateUserById } from '@/api/user'
 import { checkGmsfhm, checkUserName } from '@/api/validate'
-import { checkCode, checkDate } from '@/utils/validate'
+import { checkCode, checkDate, isEmpty } from '@/utils/validate'
 
 export default {
   name: 'UserAdd',
@@ -100,12 +100,18 @@ export default {
           message: '请输入姓名',
           trigger: 'blur'
         }, {
+          validator: isEmpty,
+          trigger: 'blur'
+        }, {
           validator: this.checkUserNameDuplicate,
           trigger: 'blur'
         }],
         realName: [{
           required: true,
           message: '请输入姓名',
+          trigger: 'blur'
+        }, {
+          validator: isEmpty,
           trigger: 'blur'
         }
           // ,{
@@ -119,6 +125,9 @@ export default {
           message: '请输入身份证号码',
           trigger: 'blur'
         }, {
+          validator: isEmpty,
+          trigger: 'blur'
+        }, {
           validator: this.checkGmsfhmDuplicate,
           trigger: 'blur'
         }],
@@ -126,15 +135,24 @@ export default {
           required: true,
           message: '请输入警号',
           trigger: 'blur'
+        }, {
+          validator: isEmpty,
+          trigger: 'blur'
         }],
         pwd: [{
           required: true,
           message: '请输入登录密码',
           trigger: 'blur'
+        }, {
+          validator: isEmpty,
+          trigger: 'blur'
         }],
         deptCode: [{
           required: true,
           message: '请选择部门',
+          trigger: 'blur'
+        }, {
+          validator: isEmpty,
           trigger: 'blur'
         }]
       }
@@ -151,7 +169,7 @@ export default {
   },
   methods: {
     async checkUserNameDuplicate(rule, userName, callback) {
-      const result = await checkUserName(userName)
+      const result = await checkUserName(userName, this.tbSysUserRow.id)
       if (result.success === false) {
         callback(new Error(result.message))
       } else {
@@ -173,7 +191,7 @@ export default {
         regResult = checkCode(gmsfhm) ? checkDate(gmsfhm.substring(6, 14)) : false
       }
       if (regResult) {
-        const result = await checkGmsfhm(gmsfhm)
+        const result = await checkGmsfhm(gmsfhm, this.tbSysUserRow.id)
         if (result.success === false) {
           callback(new Error(result.message))
         } else {
@@ -196,29 +214,27 @@ export default {
       this.$emit('hideUpdateDialog')
     },
     async handleConfirm() {
-      await this.$refs['elForm'].validate(validate => {
-        if (!validate) {
-          return false
-        } else {
-          let valid = true
-          for (const tbSysUserKey in this.tbSysUser) {
-            if (!this.tbSysUser[tbSysUserKey] || !this.tbSysUser[tbSysUserKey].length) {
-              valid = false
-              break
-            }
-          }
-          if (valid) {
-            const result = updateUserById(this.tbSysUserRow.id, this.tbSysUser)
-            this.$alert(result.success === true ? '用户更新成功' : '用户更新失败,请联系管理员排除问题', '操作结果', {
-              confirmButtonText: '确定',
-              callback: action => {
-                this.$emit('getUserList')
-                this.close()
-              }
-            })
-          }
-        }
+      const valid = await this.$refs['elForm'].validate().then(t => {
+        return t
+      }).catch(e => {
+        return e
       })
+      if (valid) {
+        await updateUserById(this.tbSysUserRow.id, this.tbSysUser).then(() => {
+          this.$message({
+            type: 'success',
+            message: '用户更新成功!',
+            duration: 5 * 1000
+          })
+          this.$emit('getUserList')
+          this.close()
+        }).catch(e => {
+          this.$alert(e.message + '，请联系管理员!!', '提示', {
+            confirmButtonText: '确定',
+            type: 'error'
+          })
+        })
+      }
     }
   }
 }

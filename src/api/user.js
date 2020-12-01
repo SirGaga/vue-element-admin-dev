@@ -51,7 +51,7 @@ export const saveUser = (tbSysUser) => {
 
 /**
  * 根据用户id获取用户全部信息
- * @param id 用户实体
+ * @param id 用户id
  * @returns {AxiosPromise<any>}
  */
 export const getUserById = (id) => {
@@ -60,9 +60,19 @@ export const getUserById = (id) => {
 
 /**
  * 根据id更新用户信息
- * @param id 用户实体
+ * @param id 用户id
+ * @param tbSysUser 用户实体
  * @returns {AxiosPromise<any>}
  */
 export const updateUserById = (id, tbSysUser) => {
-  return request.put('/system/user/' + id, tbSysUser)
+  return request.put('/system/user/update/' + id, tbSysUser)
+}
+
+/**
+ * 根据id删除用户
+ * @param id 用户实体
+ * @returns {AxiosPromise<any>}
+ */
+export const deleteUserById = (id) => {
+  return request.delete('/system/user/delete/' + id)
 }
