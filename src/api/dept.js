@@ -15,3 +15,27 @@ export const findDeptTree = () => {
 export const findMultiDeptTree = () => {
   return request.get('/system/dept/multiTree')
 }
+
+/**
+ * 新增部门
+ * @returns {AxiosPromise<any>}
+ */
+export const saveDept = (tbSysDept) => {
+  return request.post('/system/dept/add', tbSysDept)
+}
+
+/**
+ * 更新部门
+ * @returns {AxiosPromise<any>}
+ */
+export const updateDeptById = (id, tbSysDept) => {
+  return request.put('/system/dept/update/' + id, tbSysDept)
+}
+
+/**
+ * 删除部门
+ * @returns {AxiosPromise<any>}
+ */
+export const deleteDeptById = (id) => {
+  return request.delete('/system/dept/delete/' + id)
+}
