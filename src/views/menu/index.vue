@@ -1,118 +1,47 @@
 <template>
   <div class="app-container">
-    <el-row :gutter="20">
-      <el-col :xs="9" :sm="6" :md="5" :lg="6" :xl="4">
-        <div class="head-container">
-          <el-input
-            v-model="deptNameFilter"
-            clearable
-            size="small"
-            placeholder="输入部门名称\部门编码搜索"
-            prefix-icon="el-icon-search"
-            class="filter-item"
-          />
-        </div>
-        <el-tree
-          ref="tree"
-          :data="deptData"
-          :props="defaultProps"
-          node-key="id"
-          :expand-on-click-node="false"
-          :filter-node-method="filterNode"
-          @node-click="handleNodeClick"
-        />
-      </el-col>
-      <el-col :xs="15" :sm="18" :md="19" :lg="18" :xl="20">
-        <!--内容展示区域-->
-        <el-row :gutter="30">
-          <el-form ref="elForm" :model="tbSysDept" size="medium" label-width="150px">
-            <el-col :span="24">
-              <el-row>
-                <el-col :span="24">
-                  <el-input v-model="tbSysDept.id" type="hidden" :style="{width: '100%'}" />
-                </el-col>
-                <el-col :span="13">
-                  <el-form-item label="部门编码" prop="deptCode">
-                    <!-- :maxlength="11" show-word-limit -->
-                    <el-input v-model="tbSysDept.deptCode" placeholder="请输入部门编码" clearable prefix-icon="el-icon-c-scale-to-original" :readonly="true" />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="13">
-                  <el-form-item label="部门名称" prop="deptName">
-                    <!-- :maxlength="11" show-word-limit -->
-                    <el-input v-model="tbSysDept.deptName" placeholder="请输入部门名称" clearable prefix-icon="el-icon-s-home" :readonly="true" />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="13">
-                  <el-form-item label="上级部门编码" prop="parentCode">
-                    <el-input v-model="tbSysDept.parentCode" placeholder="请输入上级部门编码" clearable prefix-icon="el-icon-c-scale-to-original" :readonly="true" />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="13">
-                  <el-form-item label="上级部门名称" prop="parentName">
-                    <el-input v-model="tbSysDept.parentName" placeholder="请输入上级部门名称" clearable prefix-icon="el-icon-s-home" :readonly="true" />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="13">
-                  <el-form-item class="el-row--flex is-justify-end">
-                    <el-button type="success" icon="el-icon-plus" :disabled="deptAddable" @click="showAddDeptDialog">新增子部门</el-button>
-                    <el-button type="warning" icon="el-icon-edit" :disabled="deptEditable" @click="editDept">修改部门</el-button>
-                    <el-button type="danger" icon="el-icon-delete" :disabled="deptDeletable" @click="deleteDept">删除部门</el-button>
-                  </el-form-item>
-                </el-col>
-              </el-row>
-            </el-col>
-          </el-form>
-        </el-row>
-      </el-col>
-    </el-row>
-    <el-drawer
-      ref="drawer"
-      title="新增部门"
-      :before-close="cancelSave"
-      :visible.sync="addDeptVisible"
-      :show-close="false"
-    >
+    <div class="head-container">
       <div>
-        <el-form ref="drawerForm" :model="tbSysDeptDrawer" size="medium" label-width="150px">
-          <el-col :span="24">
-            <el-row>
-              <el-col :span="24">
-                <el-input v-model="tbSysDeptDrawer.id" type="hidden" :style="{width: '100%'}" />
-              </el-col>
-              <el-col :span="20">
-                <el-form-item label="部门编码" prop="deptCode">
-                  <!-- :maxlength="11" show-word-limit -->
-                  <el-input v-model="tbSysDeptDrawer.deptCode" placeholder="请输入部门编码" clearable prefix-icon="el-icon-c-scale-to-original" />
-                </el-form-item>
-              </el-col>
-              <el-col :span="20">
-                <el-form-item label="部门名称" prop="deptName">
-                  <!-- :maxlength="11" show-word-limit -->
-                  <el-input v-model="tbSysDeptDrawer.deptName" placeholder="请输入部门名称" clearable prefix-icon="el-icon-s-home" />
-                </el-form-item>
-              </el-col>
-              <el-col :span="20">
-                <el-form-item label="上级部门编码" prop="parentCode">
-                  <el-input v-model="tbSysDeptDrawer.parentCode" placeholder="请输入上级部门编码" clearable prefix-icon="el-icon-c-scale-to-original" :readonly="true" />
-                </el-form-item>
-              </el-col>
-              <el-col :span="20">
-                <el-form-item label="上级部门名称" prop="parentName">
-                  <el-input v-model="tbSysDeptDrawer.parentName" placeholder="请输入上级部门名称" clearable prefix-icon="el-icon-s-home" :readonly="true" />
-                </el-form-item>
-              </el-col>
-              <el-col :span="20">
-                <el-form-item class="el-row--flex is-justify-center">
-                  <el-button type="success" icon="el-icon-check" @click="addOrUpdateDept">保存</el-button>
-                  <el-button type="warning" icon="el-icon-close" @click="cancelSave">取消</el-button>
-                </el-form-item>
-              </el-col>
-            </el-row>
-          </el-col>
-        </el-form>
+        <el-input v-model="condition" clearable size="small" placeholder="请输入菜单名称" style="width: 200px;" class="filter-item" />
+        <span>
+          <el-button class="filter-item" size="mini" type="success" icon="el-icon-search">搜索</el-button>
+          <el-button class="filter-item" size="mini" type="warning" icon="el-icon-refresh-left">重置</el-button>
+        </span>
       </div>
-    </el-drawer>
+      <div class="crud-opts">
+        <el-button
+          class="filter-item"
+          size="mini"
+          type="primary"
+          icon="el-icon-plus"
+        >
+          新增
+        </el-button>
+        <el-button
+          class="filter-item"
+          size="mini"
+          type="success"
+          icon="el-icon-edit"
+        >
+          修改
+        </el-button>
+        <el-button
+          class="filter-item"
+          type="danger"
+          icon="el-icon-delete"
+          size="mini"
+        >
+          删除
+        </el-button>
+        <el-button
+          class="filter-item"
+          size="mini"
+          type="warning"
+          icon="el-icon-download"
+        >导出</el-button>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -123,6 +52,7 @@ export default {
   name: 'Dept',
   data() {
     return {
+      condition: '',
       addDeptVisible: false,
       deptNameFilter: '',
       deptEditable: false,
@@ -304,6 +234,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
 </style>
 
 <style rel="stylesheet/scss" lang="scss">

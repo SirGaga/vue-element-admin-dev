@@ -121,7 +121,7 @@ aside {
 
 //main-container全局样式
 .app-container {
-  padding: 20px;
+  padding: 20px 20px 45px 20px;
 }
 
 .components-container {
@@ -181,6 +181,45 @@ aside {
   }
 }
 
+.head-container {
+  padding-bottom: 10px;
+  .filter-item {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 3px 10px 0;
+    input {
+      height: 30.5px;
+      line-height: 30.5px;
+    }
+  }
+  .el-form-item-label {
+    margin: 0 3px 9px 0;
+    display: inline-block;
+    text-align: right;
+    vertical-align: middle;
+    font-size: 14px;
+    color: #606266;
+    line-height: 30.5px;
+    padding: 0 7px 0 7px;
+  }
+  .el-button+.el-button {
+    margin-left: 0 !important;
+  }
+  .el-select__caret.el-input__icon.el-icon-arrow-up{
+    line-height: 30.5px;
+  }
+  .date-item {
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 10px;
+    height: 30.5px !important;
+    width: 230px !important;
+  }
+}
+.el-range-editor.el-input__inner {
+  display: inline-flex !important;
+}
+
 //refine vue-multiselect plugin
 .multiselect {
   line-height: 16px;
@@ -188,4 +227,14 @@ aside {
 
 .multiselect--active {
   z-index: 1000 !important;
+}
+
+.crud-opts {
+  padding: 4px 0;
+  display: -webkit-flex;
+  display: flex;
+  align-items: center;
+}
+.crud-opts .crud-opts-right {
+  margin-left: auto;
 }
