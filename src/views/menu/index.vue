@@ -2,10 +2,10 @@
   <div class="app-container">
     <div class="head-container">
       <div>
-        <el-input v-model="condition" clearable size="small" placeholder="请输入菜单名称" style="width: 200px;" class="filter-item" />
+        <el-input v-model="nameFilter" clearable size="small" placeholder="请输入菜单名称" style="width: 200px;" class="filter-item" />
         <span>
-          <el-button class="filter-item" size="mini" type="success" icon="el-icon-search">搜索</el-button>
-          <el-button class="filter-item" size="mini" type="warning" icon="el-icon-refresh-left">重置</el-button>
+          <el-button class="filter-item" size="mini" type="success" icon="el-icon-search" @click="menuTableFilter">搜索</el-button>
+          <el-button class="filter-item" size="mini" type="warning" icon="el-icon-refresh-left" @click="resetTableFilter">重置</el-button>
         </span>
       </div>
       <div class="crud-opts">
@@ -19,216 +19,188 @@
         </el-button>
         <el-button
           class="filter-item"
-          size="mini"
-          type="success"
-          icon="el-icon-edit"
-        >
-          修改
-        </el-button>
-        <el-button
-          class="filter-item"
           type="danger"
           icon="el-icon-delete"
           size="mini"
         >
           删除
         </el-button>
-        <el-button
-          class="filter-item"
-          size="mini"
-          type="warning"
-          icon="el-icon-download"
-        >导出</el-button>
       </div>
     </div>
-
+    <!--表格渲染-->
+    <el-table
+      ref="roleTable"
+      :data="roleData"
+      row-key="id"
+      :tree-props="{children: 'children',hasChildren: 'hasChildren'}"
+      @select="selectChange"
+      @select-all="selectAllChange"
+      @selection-change="selectionChangeHandler"
+    >
+      <el-table-column type="selection" width="55" />
+      <el-table-column :show-overflow-tooltip="true" label="菜单标题" width="165px" prop="name" />
+      <el-table-column prop="icon" label="图标" align="center" width="60px">
+        <template slot-scope="scope">
+          <i v-if="scope.row.icon && scope.row.icon.indexOf('el-icon') !== -1" :class="scope.row.icon"/>
+          <svg-icon v-else :icon-class="scope.row.icon ? scope.row.icon : ''" />
+        </template>
+      </el-table-column>
+      <el-table-column prop="orderNum" align="center" label="排序">
+        <template slot-scope="scope">
+          {{ scope.row.orderNum }}
+        </template>
+      </el-table-column>
+      <el-table-column :show-overflow-tooltip="true" prop="path" label="组件路径" />
+      <el-table-column prop="hidden" label="可见" width="75px">
+        <template slot-scope="scope">
+          <span v-if="scope.row.hidden">否</span>
+          <span v-else>是</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="createTime" label="创建日期" width="155px">
+        <template slot-scope="scope">
+          <span>{{ scope.row.createTime }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="130px" align="center" fixed="right">
+        <template slot-scope="scope">
+          <el-tooltip class="item" effect="dark" content="编辑" placement="top">
+            <el-button type="primary" size="small" icon="el-icon-edit" />
+          </el-tooltip>
+          <el-tooltip class="item" effect="dark" content="删除" placement="top">
+            <el-button type="danger" size="small" icon="el-icon-delete" />
+          </el-tooltip>
+        </template>
+      </el-table-column>
+    </el-table>
   </div>
 </template>
 
 <script>
-import { findMultiDeptTree, saveDept, updateDeptById, deleteDeptById } from '@/api/dept'
+import { findMultiMenuTree } from '@/api/menu'
 
 export default {
   name: 'Dept',
   data() {
     return {
-      condition: '',
-      addDeptVisible: false,
-      deptNameFilter: '',
-      deptEditable: false,
-      deptAddable: false,
-      deptDeletable: false,
-      tbSysDept: {
-        id: -1,
-        deptCode: '',
-        deptName: '',
-        parentCode: '',
-        parentName: '',
-        parentId: -1
-      },
-      tbSysDeptDrawer: {
-        id: -1,
-        deptCode: '',
-        deptName: '',
-        parentCode: '',
-        parentName: '',
-        parentId: -1
-      },
-      deptData: [],
+      nameFilter: '',
+      idField: 'id',
+      roleData: [],
+      selections: [],
       defaultProps: {
         children: 'children',
-        label: 'deptName'
+        hasChildren: 'hasChildren'
       }
     }
   },
   watch: {
-    // 监听文本框中的数据变化，动态过滤部门树
-    deptNameFilter(val) {
-      this.$refs.tree.filter(val)
-    }
+    // 监听文本框中的数据变化，动态过滤菜单树
+    // nameFilter(val) {
+    //   console.log(this.filterData(val))
+    // }
   },
   created() {
-    this.getDeptMultiTree()
+    this.getMenuMultiTree()
   },
   methods: {
-    async getDeptMultiTree() {
-      const { data } = await findMultiDeptTree()
-      this.deptData = data.records
+    async getMenuMultiTree() {
+      const { data } = await findMultiMenuTree()
+      this.roleData = data.records
     },
-    filterNode(value, data) {
-      // 根据传递过来的值过滤树节点
-      return !value ? true : data.deptName.indexOf(value) !== -1
+    getDataId(data) {
+      return data[this.idField]
     },
-    handleNodeClick({ id, deptCode, deptName, parentCode, parentName, parentId }) {
-      // 切换部门
-      this.tbSysDept = { id, deptCode, deptName, parentCode, parentName, parentId }
-    },
-    showAddDeptDialog() {
-      if (this.tbSysDept.id === -1) {
-        this.$alert('请先选择在哪个部门下添加下级部门', '友情提示', {
-          confirmButtonText: '确定'
-        })
+    /**
+     * 用于树形表格多选，单选的封装
+     * @param selection
+     * @param row
+     */
+    selectChange(selection, row) {
+      // 如果selection中存在row代表是选中，否则是取消选中
+      if (selection.find(val => { return this.getDataId(val) === this.getDataId(row) })) {
+        if (row.children) {
+          row.children.forEach(val => {
+            this.$refs['roleTable'].toggleRowSelection(val, true)
+            selection.push(val)
+            if (val.children) {
+              this.selectChange(selection, val)
+            }
+          })
+        }
       } else {
-        // 新增部门的数据初始化
-        this.tbSysDeptDrawer = JSON.parse(JSON.stringify(this.tbSysDept))
-        this.tbSysDeptDrawer.parentCode = this.tbSysDeptDrawer.deptCode
-        this.tbSysDeptDrawer.parentName = this.tbSysDeptDrawer.deptName
-        this.tbSysDeptDrawer.parentId = this.tbSysDeptDrawer.id
-        this.tbSysDeptDrawer.id = -1
-        this.tbSysDeptDrawer.deptCode = ''
-        this.tbSysDeptDrawer.deptName = ''
-        // 按钮，drawer的显示
-        this.deptEditable = !this.deptEditable
-        this.deptAddable = !this.deptAddable
-        this.deptDeletable = !this.deptDeletable
-        this.addDeptVisible = true
+        this.toggleRowSelection(selection, row)
       }
     },
-    async addOrUpdateDept() {
-      if (this.tbSysDeptDrawer.id === -1) {
-        await saveDept(this.tbSysDeptDrawer).then(({ data }) => {
-          this.$message({
-            type: 'success',
-            message: '部门添加成功!',
-            duration: 5 * 1000
-          })
-          // 根据返回数据的父节点获取到
-          const node = this.$refs['tree'].getNode(data.records.parentId)
-          // 删除新增节点返回的 children 属性
-          delete data.records.children
-          delete data.records.deleted
-          this.$refs['tree'].append(data.records, node)
-        }).catch(e => {
-          this.$alert(e.message + '，请联系管理员!!', '提示', {
-            confirmButtonText: '确定',
-            type: 'error'
-          })
-        })
-      } else {
-        await updateDeptById(this.tbSysDeptDrawer.id, this.tbSysDeptDrawer).then(({ data }) => {
-          this.$message({
-            type: 'success',
-            message: '部门更新成功!',
-            duration: 5 * 1000
-          })
-          // 根据id找到树中的节点
-          const node = this.$refs['tree'].getNode(data.records.id)
-          // 删除新增节点返回的 children 属性
-          node.data.deptName = data.records.deptName
-          node.data.deptCode = data.records.deptCode
-          this.tbSysDept.deptName = data.records.deptName
-          this.tbSysDept.deptCode = data.records.deptCode
-        }).catch(e => {
-          this.$alert(e.message + '，请联系管理员!!', '提示', {
-            confirmButtonText: '确定',
-            type: 'error'
-          })
+    /**
+     * 切换选中状态
+     * @param selection
+     * @param data
+     */
+    toggleRowSelection(selection, data) {
+      if (data.children) {
+        data.children.forEach(val => {
+          this.$refs['roleTable'].toggleRowSelection(val, false)
+          if (val.children) {
+            this.toggleRowSelection(selection, val)
+          }
         })
       }
     },
-    editDept() {
-      if (this.tbSysDept.id === -1) {
-        this.$alert('请先在部门树选择要修改的部门', '友情提示', {
-          confirmButtonText: '确定'
+    selectAllChange(selection) {
+      // 如果选中的数目与请求到的数目相同就选中子节点，否则就清空选中
+      if (selection && selection.length === this.roleData.length) {
+        selection.forEach(val => {
+          this.selectChange(selection, val)
         })
       } else {
-        // object 的深拷贝，避免 tbSysDeptDrawer 的变动引起 tbSysDept 的变动
-        this.tbSysDeptDrawer = JSON.parse(JSON.stringify(this.tbSysDept))
-        this.deptEditable = !this.deptEditable
-        this.deptAddable = !this.deptAddable
-        this.deptDeletable = !this.deptDeletable
-        this.addDeptVisible = true
+        this.$refs['roleTable'].clearSelection()
       }
     },
-    async deleteDept() {
-      await this.$confirm('此操作将删除该部门及其下属部门, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'error'
-      }).then(() => {
-        deleteDeptById(this.tbSysDept.id).then(({ data }) => {
-          this.$message({
-            type: 'success',
-            message: '部门删除成功!',
-            duration: 5 * 1000
-          })
-          // 根据id找到树中的节点
-          const node = this.$refs['tree'].getNode(this.tbSysDept.id)
-          this.$refs['tree'].remove(node)
-          this.initTbSysDept()
-        }).catch(e => {
-          this.$alert(e.message + '，请联系管理员!!', '提示', {
-            confirmButtonText: '确定',
-            type: 'error'
-          })
-        })
-      }).catch(e => {
-        return e
+    selectionChangeHandler(selection) {
+      this.selections = selection
+    },
+    menuTableFilter() {
+      // 获取到最新数据
+      this.getMenuMultiTree().then(() => {
+        this.roleData = this.filter(this.roleData, this.nameFilter)
       })
     },
-    cancelSave() {
-      this.initTbSysDeptDrawer()
-      this.deptEditable = !this.deptEditable
-      this.deptAddable = !this.deptAddable
-      this.deptDeletable = !this.deptDeletable
-      this.addDeptVisible = false
+    resetTableFilter() {
+      this.getMenuMultiTree()
+      this.nameFilter = ''
     },
-    initTbSysDeptDrawer() {
-      this.tbSysDeptDrawer.id = -1
-      this.tbSysDeptDrawer.parentId = -1
-      this.tbSysDeptDrawer.deptCode = ''
-      this.tbSysDeptDrawer.deptName = ''
-      this.tbSysDeptDrawer.parentCode = ''
-      this.tbSysDeptDrawer.parentName = ''
-    },
-    initTbSysDept() {
-      this.tbSysDept.id = -1
-      this.tbSysDept.parentId = -1
-      this.tbSysDept.deptCode = ''
-      this.tbSysDept.deptName = ''
-      this.tbSysDept.parentCode = ''
-      this.tbSysDept.parentName = ''
+    filter(nodes, query) {
+      // 条件就是节点的title过滤关键字
+      const predicate = function(node) {
+        return node.name.indexOf(query) > -1
+      }
+      if (!(nodes && nodes.length)) {
+        return []
+      }
+      const newChildren = []
+      for (const node of nodes) {
+        // 以下两个条件任何一个成立，当前节点都应该加入到新子节点集中
+        // 1. 子孙节点中存在符合条件的，即 subs 数组中有值
+        // 2. 自己本身符合条件
+        const subs = this.filter(node.children, query)
+        if (predicate(node)) {
+          newChildren.push(node)
+        } else if (subs && subs.length) {
+          node.children = subs
+          newChildren.push(node)
+        }
+
+        // 以下只需要考虑自身的节点满足条件即可,不用带上父节点
+        // if (predicate(node)) {
+        //   newChildren.push(node)
+        //   node.children = this.filter(node.children, query)
+        // } else {
+        //   newChildren.push(...this.filter(node.children, query))
+        // }
+      }
+      return newChildren.length ? newChildren : []
     }
+
   }
 }
 </script>
