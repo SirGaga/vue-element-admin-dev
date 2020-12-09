@@ -14,6 +14,7 @@
           size="mini"
           type="primary"
           icon="el-icon-plus"
+          @click="addMenu"
         >
           新增
         </el-button>
@@ -41,7 +42,7 @@
       <el-table-column :show-overflow-tooltip="true" label="菜单标题" width="165px" prop="name" />
       <el-table-column prop="icon" label="图标" align="center" width="60px">
         <template slot-scope="scope">
-          <i v-if="scope.row.icon && scope.row.icon.indexOf('el-icon') !== -1" :class="scope.row.icon"/>
+          <i v-if="scope.row.icon && scope.row.icon.indexOf('el-icon') !== -1" :class="scope.row.icon" />
           <svg-icon v-else :icon-class="scope.row.icon ? scope.row.icon : ''" />
         </template>
       </el-table-column>
@@ -73,19 +74,107 @@
         </template>
       </el-table-column>
     </el-table>
+    <!--表单渲染-->
+    <el-dialog :visible.sync="dialogVisible" :title="dialogTitle" width="680px" @close="close">
+      <el-form ref="menuForm" :inline="true" :model="menuForm" size="small" label-width="80px">
+        <el-form-item label="菜单类型" prop="type">
+          <el-radio-group v-model="menuForm.type" size="mini" style="width: 178px">
+            <el-radio-button label="0">目录</el-radio-button>
+            <el-radio-button label="1">菜单</el-radio-button>
+            <el-radio-button label="2">按钮</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-show="menuForm.type.toString() !== '2'" label="菜单图标" prop="icon">
+          <el-popover
+            placement="bottom-start"
+            width="550"
+            trigger="click"
+            @show="$refs['iconSelect'].reset()"
+          >
+            <icon-select ref="iconSelect" @selected="selected" />
+            <el-input slot="reference" v-model="menuForm.icon" style="width: 450px;" placeholder="点击选择图标" readonly>
+              <i v-if="menuForm.icon && menuForm.icon.indexOf('el-icon') !== -1" slot="prefix" :class="menuForm.icon+ ' el-input__icon'" />
+              <svg-icon v-else-if="menuForm.icon && menuForm.icon.indexOf('el-icon') === -1" slot="prefix" :icon-class="menuForm.icon" class="el-input__icon" style="height: 32px;width: 16px;" />
+              <i v-else slot="prefix" class="el-icon-search el-input__icon" />
+            </el-input>
+          </el-popover>
+        </el-form-item>
+        <el-form-item v-show="menuForm.type.toString() !== '2'" label="菜单可见" prop="hidden">
+          <el-radio-group v-model="menuForm.hidden" size="mini">
+            <el-radio-button label="0">是</el-radio-button>
+            <el-radio-button label="1">否</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-if="menuForm.type.toString() !== '2'" label="菜单标题" prop="title">
+          <el-input v-model="menuForm.title" :style=" menuForm.type.toString() === '0' ? 'width: 450px' : 'width: 178px'" placeholder="菜单标题" />
+        </el-form-item>
+        <el-form-item v-if="menuForm.type.toString() === '2'" label="按钮名称" prop="title">
+          <el-input v-model="menuForm.title" placeholder="按钮名称" style="width: 178px;" />
+        </el-form-item>
+        <el-form-item label="路由地址" prop="path">
+          <el-input v-model="menuForm.path" placeholder="路由地址" style="width: 178px;" />
+        </el-form-item>
+        <el-form-item label="菜单排序" prop="menuSort">
+          <el-input-number v-model.number="menuForm.orderNum" :min="0" :max="999" controls-position="right" style="width: 178px;" />
+        </el-form-item>
+        <el-form-item v-show="menuForm.type.toString() === '1'" label="组件名称" prop="componentName">
+          <el-input v-model="menuForm.name" style="width: 178px;" placeholder="匹配组件内Name字段" />
+        </el-form-item>
+        <el-form-item v-show="menuForm.type.toString() === '1'" label="组件路径" prop="component">
+          <el-input v-model="menuForm.component" style="width: 178px;" placeholder="组件路径" />
+        </el-form-item>
+        <el-form-item label="上级类目" prop="pid">
+          <treeselect
+            v-model="menuForm.parentId"
+            :options="treeSelectData"
+            searchable
+            style="width: 450px;"
+            placeholder="选择上级类目"
+          />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="text" @click="close">取消</el-button>
+        <el-button type="primary" @click="submit">确认</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { findMultiMenuTree } from '@/api/menu'
+import Treeselect from '@riophae/vue-treeselect'
+import '@riophae/vue-treeselect/dist/vue-treeselect.css'
+import IconSelect from '@/components/IconSelect'
 
 export default {
   name: 'Dept',
+  components: { IconSelect, Treeselect },
   data() {
     return {
+      dialogVisible: false,
+      dialogTitle: '',
       nameFilter: '',
       idField: 'id',
+      rules: {
+        title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
+        path: [{ required: true, message: '请输入路径', trigger: 'blur' }]
+      },
+      menuForm: {
+      },
+      menuPrepared: {
+        type: 0,
+        icon: '',
+        hidden: 0,
+        name: '',
+        title: '',
+        path: '',
+        parentId: 0,
+        orderNum: 0,
+        component: ''
+      },
       roleData: [],
+      treeSelectData: [],
       selections: [],
       defaultProps: {
         children: 'children',
@@ -101,20 +190,23 @@ export default {
   },
   created() {
     this.getMenuMultiTree()
+    this.menuForm = JSON.parse(JSON.stringify(this.menuPrepared))
   },
   methods: {
     async getMenuMultiTree() {
       const { data } = await findMultiMenuTree()
       this.roleData = data.records
+      // 构建树形结构
+      const root = { id: 0, parentId: null, children: [], label: '菜单树' }
+      this.filterAttrNull(data.records)
+      root.children = data.records
+      // 为treeselect组件准备数据
+      this.treeSelectData.push(root)
     },
     getDataId(data) {
       return data[this.idField]
     },
-    /**
-     * 用于树形表格多选，单选的封装
-     * @param selection
-     * @param row
-     */
+    // 用于树形表格多选，单选的封装
     selectChange(selection, row) {
       // 如果selection中存在row代表是选中，否则是取消选中
       if (selection.find(val => { return this.getDataId(val) === this.getDataId(row) })) {
@@ -131,11 +223,7 @@ export default {
         this.toggleRowSelection(selection, row)
       }
     },
-    /**
-     * 切换选中状态
-     * @param selection
-     * @param data
-     */
+    // 切换选中状态
     toggleRowSelection(selection, data) {
       if (data.children) {
         data.children.forEach(val => {
@@ -199,8 +287,33 @@ export default {
         // }
       }
       return newChildren.length ? newChildren : []
+    },
+    selected(name) {
+      this.menuForm.icon = name
+    },
+    addMenu() {
+      this.dialogTitle = '新增菜单'
+      this.dialogVisible = true
+    },
+    close() {
+      this.menuForm = JSON.parse(JSON.stringify(this.menuPrepared))
+      this.dialogVisible = false
+    },
+    submit() {
+      console.log(this.menuForm)
+    },
+    filterAttrNull(tree) {
+      // 遍历后台传来的路由字符串，转换为组件对象
+      return tree.filter(node => {
+        // 如果meta属性是空值需要删除route中的meta属性
+        if (node.children === null) {
+          delete node.children
+        } else if (node.children && node.children.length) {
+          node.children = this.filterAttrNull(node.children)
+        }
+        return node.type !== '2'
+      })
     }
-
   }
 }
 </script>
