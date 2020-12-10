@@ -7,3 +7,20 @@ import request from '@/utils/request'
 export const findMultiMenuTree = () => {
   return request.get('/system/menu/tree')
 }
+
+/**
+ * 保存菜单
+ * @param menu 菜单实体
+ * @returns {AxiosPromise<any>}
+ */
+export const saveMenu = (menu) => {
+  return request.post('/system/menu/add', menu)
+}
+
+/**
+ * 更新菜单
+ * @returns {AxiosPromise<any>}
+ */
+export const updateMenuById = (id, menu) => {
+  return request.put('/system/menu/update/' + id, menu)
+}

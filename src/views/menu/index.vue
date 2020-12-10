@@ -39,7 +39,7 @@
       @selection-change="selectionChangeHandler"
     >
       <el-table-column type="selection" width="55" />
-      <el-table-column :show-overflow-tooltip="true" label="菜单标题" width="165px" prop="name" />
+      <el-table-column :show-overflow-tooltip="true" label="菜单标题" width="165px" prop="label" />
       <el-table-column prop="icon" label="图标" align="center" width="60px">
         <template slot-scope="scope">
           <i v-if="scope.row.icon && scope.row.icon.indexOf('el-icon') !== -1" :class="scope.row.icon" />
@@ -65,8 +65,8 @@
       </el-table-column>
       <el-table-column label="操作" width="130px" align="center" fixed="right">
         <template slot-scope="scope">
-          <el-tooltip class="item" effect="dark" content="编辑" placement="top">
-            <el-button type="primary" size="small" icon="el-icon-edit" />
+          <el-tooltip class="item" effect="dark" content="编辑" placement="top" >
+            <el-button type="primary" size="small" icon="el-icon-edit" @click="handleEdit(scope.$index, scope.row)" />
           </el-tooltip>
           <el-tooltip class="item" effect="dark" content="删除" placement="top">
             <el-button type="danger" size="small" icon="el-icon-delete" />
@@ -77,6 +77,7 @@
     <!--表单渲染-->
     <el-dialog :visible.sync="dialogVisible" :title="dialogTitle" width="680px" @close="close">
       <el-form ref="menuForm" :inline="true" :model="menuForm" size="small" label-width="80px">
+        <el-input v-model="menuForm.id" type="hidden" />
         <el-form-item label="菜单类型" prop="type">
           <el-radio-group v-model="menuForm.type" size="mini" style="width: 178px">
             <el-radio-button label="0">目录</el-radio-button>
@@ -105,8 +106,14 @@
             <el-radio-button label="1">否</el-radio-button>
           </el-radio-group>
         </el-form-item>
+        <el-form-item v-show="menuForm.type.toString() === '1'" label="固钉" prop="affix">
+          <el-radio-group v-model="menuForm.affix" size="mini">
+            <el-radio-button label="1">是</el-radio-button>
+            <el-radio-button label="0">否</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
         <el-form-item v-if="menuForm.type.toString() !== '2'" label="菜单标题" prop="title">
-          <el-input v-model="menuForm.title" :style=" menuForm.type.toString() === '0' ? 'width: 450px' : 'width: 178px'" placeholder="菜单标题" />
+          <el-input v-model="menuForm.title" style="width: 450px" placeholder="菜单标题" />
         </el-form-item>
         <el-form-item v-if="menuForm.type.toString() === '2'" label="按钮名称" prop="title">
           <el-input v-model="menuForm.title" placeholder="按钮名称" style="width: 178px;" />
@@ -142,7 +149,7 @@
 </template>
 
 <script>
-import { findMultiMenuTree } from '@/api/menu'
+import { findMultiMenuTree, saveMenu, updateMenuById } from '@/api/menu'
 import Treeselect from '@riophae/vue-treeselect'
 import '@riophae/vue-treeselect/dist/vue-treeselect.css'
 import IconSelect from '@/components/IconSelect'
@@ -166,12 +173,14 @@ export default {
         type: 0,
         icon: '',
         hidden: 0,
+        affix: 0,
         name: '',
         title: '',
         path: '',
         parentId: 0,
         orderNum: 0,
-        component: ''
+        component: '',
+        id: -1
       },
       roleData: [],
       treeSelectData: [],
@@ -198,9 +207,10 @@ export default {
       this.roleData = data.records
       // 构建树形结构
       const root = { id: 0, parentId: null, children: [], label: '菜单树' }
-      this.filterAttrNull(data.records)
+      this.filterAttrNull(JSON.parse(JSON.stringify(data.records)))
       root.children = data.records
       // 为treeselect组件准备数据
+      this.treeSelectData = []
       this.treeSelectData.push(root)
     },
     getDataId(data) {
@@ -294,13 +304,45 @@ export default {
     addMenu() {
       this.dialogTitle = '新增菜单'
       this.dialogVisible = true
+      this.saveOrUpdate = 'save'
     },
     close() {
+      this.saveOrUpdate = ''
       this.menuForm = JSON.parse(JSON.stringify(this.menuPrepared))
       this.dialogVisible = false
     },
-    submit() {
-      console.log(this.menuForm)
+    async submit() {
+      if (this.menuForm.id === -1) {
+        await saveMenu(this.menuForm).then(() => {
+          this.$message({
+            type: 'success',
+            message: '菜单添加成功!',
+            duration: 5 * 1000
+          })
+          this.getMenuMultiTree()
+          this.close()
+        }).catch(e => {
+          this.$alert(e.message + '，请联系管理员!!', '提示', {
+            confirmButtonText: '确定',
+            type: 'error'
+          })
+        })
+      } else {
+        await updateMenuById(this.menuForm.id, this.menuForm).then(() => {
+          this.$message({
+            type: 'success',
+            message: '菜单添加成功!',
+            duration: 5 * 1000
+          })
+          this.getMenuMultiTree()
+          this.close()
+        }).catch(e => {
+          this.$alert(e.message + '，请联系管理员!!', '提示', {
+            confirmButtonText: '确定',
+            type: 'error'
+          })
+        })
+      }
     },
     filterAttrNull(tree) {
       // 遍历后台传来的路由字符串，转换为组件对象
@@ -313,6 +355,15 @@ export default {
         }
         return node.type !== '2'
       })
+    },
+    handleEdit(index, row) {
+      console.log(row)
+      this.saveOrUpdate = 'update'
+      this.dialogTitle = '更新菜单'
+      this.menuForm = row
+      this.menuForm.title = row.title
+      this.menuForm.component = row.component
+      this.dialogVisible = true
     }
   }
 }
