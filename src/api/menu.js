@@ -24,3 +24,15 @@ export const saveMenu = (menu) => {
 export const updateMenuById = (id, menu) => {
   return request.put('/system/menu/update/' + id, menu)
 }
+
+/**
+ * 删除菜单
+ * @returns {AxiosPromise<any>}
+ */
+export const deleteMenuByIds = (ids) => {
+  return request.delete('/system/menu/delete', {
+    data: {
+      ids: ids
+    }
+  })
+}

@@ -147,7 +147,7 @@
 </template>
 
 <script>
-import { findMultiMenuTree, saveMenu, updateMenuById } from '@/api/menu'
+import { findMultiMenuTree, saveMenu, updateMenuById, deleteMenuByIds } from '@/api/menu'
 import Treeselect from '@riophae/vue-treeselect'
 import '@riophae/vue-treeselect/dist/vue-treeselect.css'
 import IconSelect from '@/components/IconSelect'
@@ -368,16 +368,24 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          this.crud.delAllLoading = true
-          this.crud.doDelete(datas)
-        }).catch(() => {
+          deleteMenuByIds(this.selections.map(e => this.getDataId(e)))
+            .then(() => {
+              this.$message({
+                type: 'success',
+                message: '删除成功!'
+              })
+              this.getMenuMultiTree()
+            }).catch()
+        }).catch(e => {
+          this.$alert(e.message + '，请联系管理员!!', '提示', {
+            confirmButtonText: '确定',
+            type: 'error'
+          })
         })
-        const ids = this.selections.map(e => this.getDataId(e))
-        ids.forEach(e => console.log(e))
       } else {
         this.$alert('请选择要删除的菜单', '提示', {
           confirmButtonText: '确定',
-          type: 'error'
+          type: 'warning'
         })
       }
     }
