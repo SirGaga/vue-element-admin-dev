@@ -23,6 +23,7 @@
           type="danger"
           icon="el-icon-delete"
           size="mini"
+          @click="toDelete"
         >
           删除
         </el-button>
@@ -65,11 +66,8 @@
       </el-table-column>
       <el-table-column label="操作" width="130px" align="center" fixed="right">
         <template slot-scope="scope">
-          <el-tooltip class="item" effect="dark" content="编辑" placement="top" >
+          <el-tooltip class="item" effect="dark" content="编辑" placement="top">
             <el-button type="primary" size="small" icon="el-icon-edit" @click="handleEdit(scope.$index, scope.row)" />
-          </el-tooltip>
-          <el-tooltip class="item" effect="dark" content="删除" placement="top">
-            <el-button type="danger" size="small" icon="el-icon-delete" />
           </el-tooltip>
         </template>
       </el-table-column>
@@ -207,8 +205,7 @@ export default {
       this.roleData = data.records
       // 构建树形结构
       const root = { id: 0, parentId: null, children: [], label: '菜单树' }
-      this.filterAttrNull(JSON.parse(JSON.stringify(data.records)))
-      root.children = data.records
+      root.children = this.filterAttrNull(JSON.parse(JSON.stringify(data.records)))
       // 为treeselect组件准备数据
       this.treeSelectData = []
       this.treeSelectData.push(root)
@@ -357,13 +354,32 @@ export default {
       })
     },
     handleEdit(index, row) {
-      console.log(row)
       this.saveOrUpdate = 'update'
       this.dialogTitle = '更新菜单'
       this.menuForm = row
       this.menuForm.title = row.title
       this.menuForm.component = row.component
       this.dialogVisible = true
+    },
+    toDelete() {
+      if (this.selections && this.selections.length) {
+        this.$confirm(`确认删除选中的${this.selections.length}条数据?`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.crud.delAllLoading = true
+          this.crud.doDelete(datas)
+        }).catch(() => {
+        })
+        const ids = this.selections.map(e => this.getDataId(e))
+        ids.forEach(e => console.log(e))
+      } else {
+        this.$alert('请选择要删除的菜单', '提示', {
+          confirmButtonText: '确定',
+          type: 'error'
+        })
+      }
     }
   }
 }
