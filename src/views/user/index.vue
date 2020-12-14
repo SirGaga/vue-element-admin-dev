@@ -108,7 +108,7 @@
       <el-pagination
         style="padding-top: 15px"
         :current-page="currentPage"
-        :page-sizes="[10, 15, 20, 50, 100,200,1000]"
+        :page-sizes="[10, 15, 20, 50, 100, 200, 1000]"
         :page-size="pageSize"
         layout="total, sizes, prev, pager, next, jumper"
         :total="total"

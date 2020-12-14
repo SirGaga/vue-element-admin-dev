@@ -31,8 +31,8 @@
     </div>
     <!--表格渲染-->
     <el-table
-      ref="roleTable"
-      :data="roleData"
+      ref="menuTable"
+      :data="menuData"
       row-key="id"
       :tree-props="{children: 'children',hasChildren: 'hasChildren'}"
       @select="selectChange"
@@ -180,7 +180,7 @@ export default {
         component: '',
         id: -1
       },
-      roleData: [],
+      menuData: [],
       treeSelectData: [],
       selections: [],
       defaultProps: {
@@ -202,7 +202,7 @@ export default {
   methods: {
     async getMenuMultiTree() {
       const { data } = await findMultiMenuTree()
-      this.roleData = data.records
+      this.menuData = data.records
       // 构建树形结构
       const root = { id: 0, parentId: null, children: [], label: '菜单树' }
       root.children = this.filterAttrNull(JSON.parse(JSON.stringify(data.records)))
@@ -219,7 +219,7 @@ export default {
       if (selection.find(val => { return this.getDataId(val) === this.getDataId(row) })) {
         if (row.children) {
           row.children.forEach(val => {
-            this.$refs['roleTable'].toggleRowSelection(val, true)
+            this.$refs['menuTable'].toggleRowSelection(val, true)
             selection.push(val)
             if (val.children) {
               this.selectChange(selection, val)
@@ -234,7 +234,7 @@ export default {
     toggleRowSelection(selection, data) {
       if (data.children) {
         data.children.forEach(val => {
-          this.$refs['roleTable'].toggleRowSelection(val, false)
+          this.$refs['menuTable'].toggleRowSelection(val, false)
           if (val.children) {
             this.toggleRowSelection(selection, val)
           }
@@ -243,12 +243,12 @@ export default {
     },
     selectAllChange(selection) {
       // 如果选中的数目与请求到的数目相同就选中子节点，否则就清空选中
-      if (selection && selection.length === this.roleData.length) {
+      if (selection && selection.length === this.menuData.length) {
         selection.forEach(val => {
           this.selectChange(selection, val)
         })
       } else {
-        this.$refs['roleTable'].clearSelection()
+        this.$refs['menuTable'].clearSelection()
       }
     },
     selectionChangeHandler(selection) {
@@ -257,7 +257,7 @@ export default {
     menuTableFilter() {
       // 获取到最新数据
       this.getMenuMultiTree().then(() => {
-        this.roleData = this.filter(this.roleData, this.nameFilter)
+        this.menuData = this.filter(this.menuData, this.nameFilter)
       })
     },
     resetTableFilter() {

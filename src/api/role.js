@@ -16,11 +16,16 @@ export function getRoutes() {
   })
 }
 
-export function getRoles() {
-  return request({
-    url: '/vue-element-admin/roles',
-    method: 'get'
-  })
+/**
+ * 获取所有的角色
+ * @returns {AxiosPromise}
+ */
+export function getRoles(roleVo) {
+  return request.post('/system/role/', roleVo)
+}
+
+export function getMenuIdsByRoleId(id) {
+  return request.post('/system/role/roleMenu/' + id)
 }
 
 export function addRole(data) {
