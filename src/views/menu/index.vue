@@ -328,7 +328,7 @@ export default {
         await updateMenuById(this.menuForm.id, this.menuForm).then(() => {
           this.$message({
             type: 'success',
-            message: '菜单添加成功!',
+            message: '菜单更新成功!',
             duration: 5 * 1000
           })
           this.getMenuMultiTree()
@@ -361,9 +361,9 @@ export default {
       this.menuForm.component = row.component
       this.dialogVisible = true
     },
-    toDelete() {
+    async toDelete() {
       if (this.selections && this.selections.length) {
-        this.$confirm(`确认删除选中的${this.selections.length}条数据?`, '提示', {
+        await this.$confirm(`确认删除选中的${this.selections.length}条数据?`, '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
@@ -375,13 +375,13 @@ export default {
                 message: '删除成功!'
               })
               this.getMenuMultiTree()
-            }).catch()
-        }).catch(e => {
-          this.$alert(e.message + '，请联系管理员!!', '提示', {
-            confirmButtonText: '确定',
-            type: 'error'
-          })
-        })
+            }).catch(e => {
+              this.$alert(e.message + '，请联系管理员!!', '提示', {
+                confirmButtonText: '确定',
+                type: 'error'
+              })
+            })
+        }).catch()
       } else {
         this.$alert('请选择要删除的菜单', '提示', {
           confirmButtonText: '确定',

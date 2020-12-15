@@ -24,29 +24,43 @@ export function getRoles(roleVo) {
   return request.post('/system/role/', roleVo)
 }
 
+/**
+ * 通过角色获取菜单id集合
+ * @param id
+ * @returns {AxiosPromise<any>}
+ */
 export function getMenuIdsByRoleId(id) {
   return request.post('/system/role/roleMenu/' + id)
 }
 
-export function addRole(data) {
-  return request({
-    url: '/vue-element-admin/role',
-    method: 'post',
-    data
-  })
+/**
+ * 保存角色
+ * @param role 角色实体
+ * @returns {AxiosPromise<any>}
+ */
+export const saveRole = (role) => {
+  return request.post('/system/role/add', role)
 }
 
-export function updateRole(id, data) {
-  return request({
-    url: `/vue-element-admin/role/${id}`,
-    method: 'put',
-    data
-  })
+/**
+ * 根据角色id更新角色
+ * @param id 角色id
+ * @param role 角色实体
+ * @returns {AxiosPromise<any>}
+ */
+export const updateRoleById = (id, role) => {
+  return request.put('/system/role/update/' + id, role)
 }
 
-export function deleteRole(id) {
-  return request({
-    url: `/vue-element-admin/role/${id}`,
-    method: 'delete'
+/**
+ * 根据角色id集合删除角色
+ * @param ids 角色id集合
+ * @returns {AxiosPromise}
+ */
+export const deleteRoleByIds = (ids) => {
+  return request.delete('/system/role/delete', {
+    data: {
+      ids
+    }
   })
 }
