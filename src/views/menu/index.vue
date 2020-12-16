@@ -161,6 +161,9 @@ export default {
       dialogTitle: '',
       nameFilter: '',
       idField: 'id',
+      crudVo: {
+        ids: []
+      },
       rules: {
         title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
         path: [{ required: true, message: '请输入路径', trigger: 'blur' }]
@@ -368,7 +371,7 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          deleteMenuByIds(this.selections.map(e => this.getDataId(e)))
+          deleteMenuByIds(JSON.parse(JSON.stringify(this.selections.map(e => this.getDataId(e)))))
             .then(() => {
               this.$message({
                 type: 'success',

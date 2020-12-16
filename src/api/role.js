@@ -54,7 +54,7 @@ export const updateRoleById = (id, role) => {
 
 /**
  * 根据角色id集合删除角色
- * @param ids 角色id集合
+ * @param ids id集合
  * @returns {AxiosPromise}
  */
 export const deleteRoleByIds = (ids) => {

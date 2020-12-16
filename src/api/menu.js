@@ -27,12 +27,13 @@ export const updateMenuById = (id, menu) => {
 
 /**
  * 删除菜单
+ * @param ids id集合
  * @returns {AxiosPromise<any>}
  */
 export const deleteMenuByIds = (ids) => {
   return request.delete('/system/menu/delete', {
     data: {
-      ids: ids
+      ids
     }
   })
 }

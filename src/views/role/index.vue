@@ -148,6 +148,9 @@ export default {
       menus: [],
       menuIds: [],
       currentId: '',
+      crudVo: {
+        ids: []
+      },
       roles: [],
       total: 0,
       listQuery: {
@@ -197,7 +200,7 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          deleteRoleByIds(this.selections.map(e => this.getDataId(e)))
+          deleteRoleByIds(JSON.parse(JSON.stringify(this.selections.map(e => this.getDataId(e)))))
             .then(() => {
               this.$message({
                 type: 'success',
@@ -215,7 +218,7 @@ export default {
         }).catch(() => {
         })
       } else {
-        this.$alert('请选择要删除的菜单', '提示', {
+        await this.$alert('请选择要删除的菜单', '提示', {
           confirmButtonText: '确定',
           type: 'warning'
         })
@@ -313,6 +316,7 @@ export default {
     menuChange(menu) {
       // 获取该节点的所有子节点，id 包含自身
       this.filter(JSON.parse(JSON.stringify(this.menus)), menu.id)
+      this.menuIds = Array.from(new Set(this.menuIds))
       this.$refs.menu.setCheckedKeys(this.menuIds)
     },
     filter(array, nodeId) {
@@ -337,7 +341,7 @@ export default {
     parseChildren(array) {
       for (let index = 0; index < array.length; index++) {
         const element = array[index]
-        this.menuIds.indexOf(element.id) !== -1 ? this.menuIds.splice(this.menuIds.indexOf(element.id), 1) : this.menuIds.push(element.id)
+        this.menuIds.indexOf(element.parentId) !== -1 ? (this.menuIds.indexOf(element.id) !== -1 ? this.menuIds.splice(this.menuIds.indexOf(element.id), 1) : this.menuIds.push(element.id)) : (this.menuIds.indexOf(element.id) !== -1 ? this.menuIds.splice(this.menuIds.indexOf(element.id), 1) : this.menuIds)
         // 1.判断element.children是对象
         if (element.children !== null && element.children && element.children.length) {
           this.parseChildren(element.children)
