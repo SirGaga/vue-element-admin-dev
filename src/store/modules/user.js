@@ -9,7 +9,8 @@ const state = {
   name: '',
   avatar: '',
   // introduction: '',
-  roles: []
+  roles: [],
+  messageData: {}
 }
 
 const mutations = {
@@ -27,10 +28,16 @@ const mutations = {
   },
   SET_ROLES: (state, roles) => {
     state.roles = roles
+  },
+  SET_MESSAGE(state, messageData) {
+    state.messageData = messageData
   }
 }
 
 const actions = {
+  setMessage({ commit }, data) {
+    commit('SET_MESSAGE', data)
+  },
   // user login
   login({ commit }, userInfo) {
     const { username, password } = userInfo
