@@ -21,6 +21,16 @@ import './utils/error-log' // error log
 import * as filters from './filters' // global filters
 
 /**
+ * 在main.js引入
+ */
+import wsConnection from './views/websocket/wsStore'
+
+/**
+ * 挂载vue原型链
+ */
+Vue.prototype.$setWs = wsConnection
+
+/**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api
  * you can execute: mockXHR()

@@ -49,6 +49,10 @@ export default {
       }
     }
   },
+  created() {
+    console.log('------始化WebSocket------')
+    this.$setWs.initWebSocket()
+  },
   methods: {
     handleClickOutside() {
       this.$store.dispatch('app/closeSideBar', { withoutAnimation: false })
