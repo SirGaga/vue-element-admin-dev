@@ -117,6 +117,11 @@
       />
       <user-add :dialog-visible="dialogAddVisible" :dept="formInline.dept" :dept-map="formInline.deptMap" dept-code="" @hideAddDialog="hideAddDialog" @getUserList="getUserList" />
       <user-update :dialog-visible="dialogUpdateVisible" :dept="formInline.dept" :dept-map="formInline.deptMap" :dept-code="deptCodeCascader" :tb-sys-user-row="tbSysUserRow" @hideUpdateDialog="hideUpdateDialog" @getUserList="getUserList" />
+      <el-dialog :visible.sync="dialogRoleVisible" title="用户角色" @close="hideRoleDialog">
+        <el-row :gutter="15">
+
+        </el-row>
+      </el-dialog>
     </el-card>
   </div>
 </template>
@@ -138,6 +143,7 @@ export default {
   },
   data() {
     return {
+      dialogRoleVisible: false,
       dialogAddVisible: false,
       dialogUpdateVisible: false,
       deptCodeCascader: '',
@@ -239,6 +245,9 @@ export default {
       this.tbSysUserRow = {}
       this.deptCodeCascader = ''
     },
+    hideRoleDialog() {
+      this.dialogRoleVisible = false
+    },
     // 处理编辑 后台传入id，然后查询出来信息后返回弹框中
     handleEdit(index, row) {
       this.dialogUpdateVisible = true
@@ -274,7 +283,7 @@ export default {
     },
     // 处理权限配置，后台传入id，然后级联获取权限信息，返回弹窗
     handlePermission(index, row) {
-      console.log(index, row)
+      this.dialogRoleVisible = true
     }
   }
 }

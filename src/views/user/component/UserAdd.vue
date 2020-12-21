@@ -178,7 +178,6 @@ export default {
       this.$refs['elForm'].resetFields()
       this.tbSysUser.deptName = ''
       this.tbSysUser.deptId = 0
-      console.log(this.tbSysUser)
       this.$emit('hideAddDialog')
     },
     async handleConfirm() {
