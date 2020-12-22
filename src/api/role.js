@@ -25,6 +25,14 @@ export function getRoles(roleVo) {
 }
 
 /**
+ * 获取所有的角色
+ * @returns {AxiosPromise}
+ */
+export function getRolesAll(roleVo) {
+  return request.post('/system/role/all', roleVo)
+}
+
+/**
  * 通过角色获取菜单id集合
  * @param id
  * @returns {AxiosPromise<any>}

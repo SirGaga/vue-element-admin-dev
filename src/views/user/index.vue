@@ -117,9 +117,23 @@
       />
       <user-add :dialog-visible="dialogAddVisible" :dept="formInline.dept" :dept-map="formInline.deptMap" dept-code="" @hideAddDialog="hideAddDialog" @getUserList="getUserList" />
       <user-update :dialog-visible="dialogUpdateVisible" :dept="formInline.dept" :dept-map="formInline.deptMap" :dept-code="deptCodeCascader" :tb-sys-user-row="tbSysUserRow" @hideUpdateDialog="hideUpdateDialog" @getUserList="getUserList" />
-      <el-dialog :visible.sync="dialogRoleVisible" title="用户角色" @close="hideRoleDialog">
-        <el-row :gutter="15">
-
+      <el-dialog :visible.sync="dialogRoleVisible" title="用户角色" width="625px" @close="hideRoleDialog">
+        <el-row :span="12">
+          <el-transfer
+            v-model="userRole"
+            style="text-align: left; display: inline-block"
+            filterable
+            filter-placeholder="请输入角色名称"
+            :right-default-checked="currentUserRole"
+            :titles="['所有角色', '授予角色']"
+            :data="tbSysRole"
+            :props="transferProps"
+            @change="roleDirectionChange"
+            @right-check-change="roleChange"
+          >
+            <el-button slot="left-footer" class="transfer-footer" icon="el-icon-refresh" type="primary" size="small" @click="getRolesList">刷新</el-button>
+            <el-button slot="right-footer" class="transfer-footer" icon="el-icon-check" type="primary" size="small">保存</el-button>
+          </el-transfer>
         </el-row>
       </el-dialog>
     </el-card>
@@ -133,6 +147,8 @@ import { findDeptTree } from '@/api/dept'
 import UserAdd from './component/UserAdd'
 import { listConvertTree } from '@/utils/array-list'
 import UserUpdate from '@/views/user/component/UserUpdate'
+import { getRolesAll } from '@/api/role'
+import { getRolesByUserId } from '@/api/user-role'
 
 export default {
   name: 'User',
@@ -172,10 +188,18 @@ export default {
         dept: []
       },
       tbSysUserRow: {},
+      transferProps: {
+        key: 'id',
+        label: 'roleNameCh'
+      },
+      tbSysRole: {},
       tableData: [],
       currentPage: 1,
       total: 1,
-      pageSize: 20
+      pageSize: 20,
+      userRole: [],
+      currentId: 0,
+      currentUserRole: []
     }
   },
   // Vue生命周期函数，在组件被创建的时候进行执行，
@@ -183,6 +207,7 @@ export default {
   created() {
     this.getUserList()
     this.getDeptList()
+    this.getRolesList()
   },
   methods: {
     async getUserList() {
@@ -200,6 +225,10 @@ export default {
       this.formInline.deptMap = data.records
       const root = listConvertTree(this.formInline.deptMap)
       this.formInline.dept = root.children
+    },
+    async getRolesList() {
+      const { data } = await getRolesAll()
+      this.tbSysRole = data.records
     },
     onSubmit() {
       console.log('submit!')
@@ -282,12 +311,34 @@ export default {
       }
     },
     // 处理权限配置，后台传入id，然后级联获取权限信息，返回弹窗
-    handlePermission(index, row) {
+    async handlePermission(index, row) {
       this.dialogRoleVisible = true
+      this.currentId = row.id
+      const { data } = await getRolesByUserId(this.currentId)
+      this.currentUserRole = []
+      this.userRole = []
+      data.records.forEach(e => {
+        this.userRole.push(e.roleId)
+        this.currentUserRole.push(e.roleId)
+      })
+    },
+    roleDirectionChange(value, direction, movedKeys) {
+      if (direction !== 'right') {
+        movedKeys.forEach(e => {
+          this.currentUserRole.splice(this.currentUserRole.indexOf(e), 1)
+        })
+      }
+    },
+    roleChange(value) {
+      this.currentUserRole = value
     }
   }
 }
 </script>
 
 <style scoped>
+  .transfer-footer {
+    margin-left: 10px;
+    padding: 6px 5px;
+  }
 </style>
