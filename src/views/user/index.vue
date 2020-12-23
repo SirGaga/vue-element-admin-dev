@@ -132,7 +132,7 @@
             @right-check-change="roleChange"
           >
             <el-button slot="left-footer" class="transfer-footer" icon="el-icon-refresh" type="primary" size="small" @click="getRolesList">刷新</el-button>
-            <el-button slot="right-footer" class="transfer-footer" icon="el-icon-check" type="primary" size="small">保存</el-button>
+            <el-button slot="right-footer" class="transfer-footer" icon="el-icon-check" type="primary" size="small" @click="saveUserROle">保存</el-button>
           </el-transfer>
         </el-row>
       </el-dialog>
@@ -148,7 +148,7 @@ import UserAdd from './component/UserAdd'
 import { listConvertTree } from '@/utils/array-list'
 import UserUpdate from '@/views/user/component/UserUpdate'
 import { getRolesAll } from '@/api/role'
-import { getRolesByUserId } from '@/api/user-role'
+import { getRolesByUserId, updateUserRole } from '@/api/user-role'
 
 export default {
   name: 'User',
@@ -276,6 +276,8 @@ export default {
     },
     hideRoleDialog() {
       this.dialogRoleVisible = false
+      this.currentId = 0
+      this.currentUserRole = []
     },
     // 处理编辑 后台传入id，然后查询出来信息后返回弹框中
     handleEdit(index, row) {
@@ -331,6 +333,38 @@ export default {
     },
     roleChange(value) {
       this.currentUserRole = value
+    },
+    async saveUserROle() {
+      if (this.currentUserRole && this.currentUserRole.length) {
+        await this.$confirm(`确认赋予用户被选中的${this.currentUserRole.length}个角色?`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          const crudVo = {}
+          crudVo.userId = this.currentId
+          crudVo.ids = this.currentUserRole
+          updateUserRole(JSON.parse(JSON.stringify(crudVo)))
+            .then(() => {
+              this.$message({
+                type: 'success',
+                message: '保存成功!'
+              })
+              this.hideRoleDialog()
+            }).catch(e => {
+              this.$alert(e.message + '，请联系管理员!!', '提示', {
+                confirmButtonText: '确定',
+                type: 'error'
+              })
+            })
+        }).catch(() => {
+        })
+      } else {
+        await this.$alert('请选择要赋予用户的角色', '提示', {
+          confirmButtonText: '确定',
+          type: 'warning'
+        })
+      }
     }
   }
 }
